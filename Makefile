@@ -1,14 +1,11 @@
-################################################################################
-#
-# description = "CLIENT-PRODUCT-PROJECT"
-# author      = "Aravinth Panch <ara@aracreate.group>"
-# copyright   = "Copyright (C) 2026, araCreate Group"
-# license     = "LicenseRef-Proprietary"
-# version     = "0.0.1"
-#
-################################################################################
+# SPDX-License-Identifier: LicenseRef-Proprietary
+# Copyright (C) 2026, araCreate Group
+# Author: Aravinth Panch <ara@aracreate.group>
+# Description: CLIENT-PRODUCT-PROJECT: Unified build and environment tasks
+
 SHELL   := /bin/bash
 SRC_DIR := ./src
+MOTD    := ./scripts/motd
 
 ################################################################################
 # Help
@@ -16,9 +13,7 @@ SRC_DIR := ./src
 .DEFAULT_GOAL := help
 
 help:
-	@echo ""
-	@echo "========================================================================"
-	@echo " CLIENT-PRODUCT-PROJECT"
+	@cat $(MOTD)
 	@echo "========================================================================"
 	@echo "make install        --> Install dependencies"
 	@echo "make setup          --> Set up environment"
@@ -33,23 +28,25 @@ help:
 ################################################################################
 # Targets
 ################################################################################
+.PHONY: help install setup dev build test release clean
+
 install:
-	@echo "\n==> Installing dependencies\n"
+	@printf "\n==> Installing dependencies\n\n"
 
 setup:
-	@echo "\n==> Setting up environment\n"
+	@printf "\n==> Setting up environment\n\n"
 
 dev:
-	@echo "\n==> Running locally\n"
+	@printf "\n==> Running locally\n\n"
 
 build:
-	@echo "\n==> Building\n"
+	@printf "\n==> Building\n\n"
 
 test:
-	@echo "\n==> Running tests\n"
+	@printf "\n==> Running tests\n\n"
 
 release:
-	@echo "\n==> Cutting release\n"
+	@printf "\n==> Cutting release\n\n"
 
 clean:
-	@echo "\n==> Cleaning build artefacts\n"
+	@printf "\n==> Cleaning build artefacts\n\n"

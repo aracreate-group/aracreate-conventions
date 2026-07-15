@@ -6,9 +6,8 @@
 ██║  ██║██║  ██║██║  ██║╚██████╗██║  ██║███████╗██║  ██║   ██║   ███████╗
 ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝   ╚═╝   ╚══════╝
 
-# description = "CLIENT-PRODUCT-PROJECT"
-# author      = "Aravinth Panch <ara@aracreate.group>"
-# copyright   = "Copyright (C) 2026, araCreate Group"
-# license     = "LicenseRef-Proprietary"
-# version     = "0.0.1"
+# SPDX-License-Identifier: LicenseRef-Proprietary
+# Copyright (C) 2026, araCreate Group
+# Author: Aravinth Panch <ara@aracreate.group>
+# Description: CLIENT-PRODUCT-PROJECT
 
