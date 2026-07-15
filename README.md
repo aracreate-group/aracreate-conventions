@@ -47,6 +47,8 @@ project-name/
 └── README.md
 ```
 
+A `.gitkeep` is only a placeholder for an otherwise-empty folder that git would not track. Delete it as soon as the folder holds real files, and do not add one to a folder that already has content.
+
 ### `src/` by project type
 
 **Software (Next.js / web)**
@@ -135,6 +137,7 @@ first where applicable):
 
 - Description format: `"PROJECT NAME: This file contains <what>"`
 - No version in file headers, the repo-root `VERSION` file is the single source (see Versioning)
+- Leave exactly one empty line between the header and the file content
 
 ## Naming conventions
 
