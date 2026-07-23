@@ -6,10 +6,9 @@ The primary source of instructions for creating a project repository that follow
 
 When starting a new project from this template, work through the steps below.
 
-1. **Replace the placeholders.** `CLIENT-PRODUCT-PROJECT` and `PROJECT NAME` appear in several files, update every one:
-   - `Makefile`: the `Description` line in the header.
-   - `scripts/motd`: the figlet banner and the `Description` line beneath it.
-   - Source file headers: the `Description: PROJECT NAME: ...` line.
+1. **Replace the placeholders.** `CLIENT-PRODUCT-PROJECT` is the repo/slug name and `PROJECT NAME` is the display name:
+   - `scripts/motd`: the figlet banner and the `Description` line beneath it hold `PROJECT NAME`.
+   - Name the repo directory `CLIENT-PRODUCT-PROJECT`.
 2. **Regenerate the motd banner** with `figlet -f "ANSI Shadow" "PROJECT NAME"`, then update the header below it.
 3. **Set the version** to `0.0.1` in the `VERSION` file. semantic-release manages it after the first release.
 4. **Choose the `src/` layout** for the project type (see below) and remove the layouts that do not apply.
@@ -119,7 +118,7 @@ first where applicable):
 // SPDX-License-Identifier: LicenseRef-Proprietary
 // Copyright (C) 2026, araCreate Group
 // Author: Aravinth Panch <ara@aracreate.group>
-// Description: PROJECT NAME: This file contains <what>
+// Description: This file contains <what>
 ```
 
 **JSON data files**: no comments, use a `_meta` object instead:
@@ -129,19 +128,19 @@ first where applicable):
     "spdx": "LicenseRef-Proprietary",
     "copyright": "Copyright (C) 2026, araCreate Group",
     "author": "Aravinth Panch <ara@aracreate.group>",
-    "description": "PROJECT NAME: This file contains <what> in JSON format"
+    "description": "This file contains <what> in JSON format"
   },
   "data": []
 }
 ```
 
-- Description format: `"PROJECT NAME: This file contains <what>"`
+- Description format: `"This file contains <what>"`
 - No version in file headers, the repo-root `VERSION` file is the single source (see Versioning)
 - Leave exactly one empty line between the header and the file content
 
 ## Naming conventions
 
-- **param-case**: file names, URLs, CSS classes, CLI flags, HTML attributes
+- **param-case**: file names, URLs, CSS classes, CLI flags, HTML attributes. Brand names follow the same rule (e.g. `aracreate-config.json`)
 - **snake_case**: JSON keys, JS/TS variables/properties, Python variables, C variables
 
 ## Makefile
@@ -173,7 +172,7 @@ These targets are a baseline. Extend them per project (`start`, `lint` for web; 
 # Description: PROJECT NAME
 ```
 
-Generate with: `figlet -f "ANSI Shadow" "PROJECT NAME"`
+The `Description` is the project name (no `This file contains …` text, and no prefix). Generate the banner with: `figlet -f "ANSI Shadow" "PROJECT NAME"`
 
 ## Versioning
 

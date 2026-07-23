@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: LicenseRef-Proprietary
 # Copyright (C) 2026, araCreate Group
 # Author: Aravinth Panch <ara@aracreate.group>
-# Description: CLIENT-PRODUCT-PROJECT: Unified build and environment tasks
+# Description: Unified build and environment tasks
 
 SHELL   := /bin/bash
 SRC_DIR := ./src
