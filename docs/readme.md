@@ -1,3 +1,3 @@
-# Docs
+# DOCS
 
 Project documentation.
