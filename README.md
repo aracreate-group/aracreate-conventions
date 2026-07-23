@@ -32,9 +32,13 @@ Once the conventions are in place, this file stops being the template and become
 ```
 project-name/
 ├── src/              # Main source — contents vary by project type
+│   └── readme.md
 ├── docs/             # Documentation
+│   └── readme.md
 ├── assets/           # Images, diagrams, brand, media
+│   └── readme.md
 ├── tests/            # Test suites and isolated prototypes
+│   └── readme.md
 ├── scripts/
 │   └── motd          # ANSI Shadow project name + metadata
 ├── Makefile          # Unified entry point
@@ -46,7 +50,7 @@ project-name/
 └── README.md
 ```
 
-A `.gitkeep` is only a placeholder for an otherwise-empty folder that git would not track. Delete it as soon as the folder holds real files, and do not add one to a folder that already has content.
+Each top-level folder holds a lowercase `readme.md` describing its purpose. This keeps the folder tracked by git and documents it — use it instead of a `.gitkeep`. Only the repo-root `README.md` is capitalised; every folder-level `readme.md` is lowercase.
 
 ### `src/` by project type
 
@@ -142,6 +146,7 @@ first where applicable):
 
 - **param-case**: file names, URLs, CSS classes, CLI flags, HTML attributes. Brand names follow the same rule (e.g. `aracreate-config.json`)
 - **snake_case**: JSON keys, JS/TS variables/properties, Python variables, C variables
+- **README casing**: only the repo-root `README.md` is capitalised; folder-level `readme.md` files are lowercase
 
 ## Makefile
 
