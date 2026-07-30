@@ -1,6 +1,6 @@
-# araCreate Template Codebase
+# araCreate Conventions
 
-The primary source of instructions for creating a project repository that follows araCreate Group conventions. Copy this repo as a starting point and work through the steps below.
+The canonical reference for the conventions every araCreate Group repository follows. New repos are set up to match the structure and standards documented here, and each project's own README links back to this repo rather than duplicating the rules.
 
 | Part | Covers |
 | --- | --- |
@@ -9,11 +9,13 @@ The primary source of instructions for creating a project repository that follow
 
 ## 1 Repo
 
-Creating a repo from this template and writing its README.
+Setting up a new repo to follow these conventions, and writing its README.
 
 ### 1.1 Creating a new repo
 
-1. **Replace the placeholders** with the real project:
+Base a new repo on this structure, then make it the project's own:
+
+1. **Set the project identity** by replacing the placeholders:
    - `CLIENT-PRODUCT-PROJECT` — the repo / slug name; used as the repo directory name.
    - `PROJECT NAME` — the display name; appears in `scripts/motd` as the figlet banner and the `Description` line beneath it.
 2. **Regenerate the motd banner and header** — see [motd](#26-motd).
@@ -24,14 +26,14 @@ Creating a repo from this template and writing its README.
 
 ### 1.2 Rewriting the README
 
-Once the conventions are in place, this file stops being the template and becomes the project's README. Lead with the project, not the standards, and keep this shape:
+Each project's `README.md` describes the project, not these conventions. Lead with the project, not the standards, and keep this shape:
 
 - **Title**: the product or project name.
 - **Description**: a line on what it does and who it is for, optionally a short "What it does" list.
 - **Stack**: the main technologies, a `Layer | Tool` table reads well for software.
 - **Architecture / layout**: data model, app structure, or hardware details as the project needs.
 - **Commands**: the `make` targets to install, run, build, and test.
-- **Conventions**: link back to this template repo rather than duplicating it, `See [aracreate-template-codebase](...)`, and add only project-specific rules.
+- **Conventions**: link back to this conventions repo rather than duplicating it, `See [aracreate-conventions](...)`, and add only project-specific rules.
 - **License**: one line pointing at `LICENSE`, with the correct copyright holder.
 
 ## 2 Conventions
