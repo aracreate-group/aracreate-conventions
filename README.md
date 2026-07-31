@@ -50,11 +50,11 @@ project-name/
 │   └── readme.md
 ├── tests/            # Tests, bring-up scripts, and prototypes
 │   └── readme.md
-├── releases/         # Shippable outputs — binaries, firmware, fab files (as needed)
+├── releases/         # Shippable outputs — binaries, firmware, fab files
 │   └── readme.md
-├── logs/             # Project-log media — photos, videos, notes (as needed)
+├── logs/             # Project-log media — photos, videos, notes
 │   └── readme.md
-├── .archives/        # Archived approaches trialled but not shipped (as needed)
+├── .archives/        # Archived approaches trialled but not shipped
 │   └── readme.md
 ├── scripts/          # Helper scripts + motd banner
 │   ├── readme.md
@@ -68,9 +68,9 @@ project-name/
 └── README.md
 ```
 
-Each top-level folder holds a lowercase `readme.md` describing its purpose. This keeps the folder tracked by git and documents it — use it instead of a `.gitkeep`. See [Naming conventions](#24-naming-conventions) for README casing.
+Create **all** top-level folders when scaffolding a new project, even the ones a project does not use yet. Each holds a lowercase `readme.md` describing its purpose — this keeps the empty folder tracked by git and documents its role, so the structure is uniform across every repo. Use the `readme.md` instead of a `.gitkeep`. See [Naming conventions](#24-naming-conventions) for README casing.
 
-`releases/`, `logs/`, and `.archives/` are included as needed, not every project uses them:
+Every project keeps the full set even when a folder starts empty:
 
 - **`releases/`** — shippable release files: compiled binaries, firmware images, or PCB fabrication outputs (Gerbers, BOM, assembly). Committed and tagged, not gitignored build cruft.
 - **`logs/`** — project-log media: dated photos, videos, and notes tracking build progress. Common on hardware and physical-build projects.
