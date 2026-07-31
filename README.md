@@ -54,7 +54,7 @@ project-name/
 │   └── readme.md
 ├── logs/             # Project-log media — photos, videos, notes (as needed)
 │   └── readme.md
-├── archives/         # Archived approaches trialled but not shipped (as needed)
+├── .archives/        # Archived approaches trialled but not shipped (as needed)
 │   └── readme.md
 ├── scripts/          # Helper scripts + motd banner
 │   ├── readme.md
@@ -70,11 +70,11 @@ project-name/
 
 Each top-level folder holds a lowercase `readme.md` describing its purpose. This keeps the folder tracked by git and documents it — use it instead of a `.gitkeep`. See [Naming conventions](#24-naming-conventions) for README casing.
 
-`releases/`, `logs/`, and `archives/` are included as needed, not every project uses them:
+`releases/`, `logs/`, and `.archives/` are included as needed, not every project uses them:
 
 - **`releases/`** — shippable release files: compiled binaries, firmware images, or PCB fabrication outputs (Gerbers, BOM, assembly). Committed and tagged, not gitignored build cruft.
 - **`logs/`** — project-log media: dated photos, videos, and notes tracking build progress. Common on hardware and physical-build projects.
-- **`archives/`** — an archive of approaches trialled during development but not shipped. Document what was tried and why it was dropped, so the knowledge is kept without cluttering `src/`.
+- **`.archives/`** — an archive of approaches trialled during development but not shipped. Document what was tried and why it was dropped, so the knowledge is kept without cluttering `src/`.
 
 #### 2.1.1 `src/` by project type
 
