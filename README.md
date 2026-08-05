@@ -6,6 +6,7 @@ The canonical reference for the conventions every araCreate Group repository fol
 | --- | --- |
 | [1 Repo](#1-repo) | [Creating a new repo](#11-creating-a-new-repo) · [Rewriting the README](#12-rewriting-the-readme) |
 | [2 Conventions](#2-conventions) | [Repo structure](#21-repo-structure) · [Copyright](#22-copyright-and-ownership) · [File headers](#23-file-headers) · [Naming](#24-naming-conventions) · [Makefile](#25-makefile) · [motd](#26-motd) · [Versioning](#27-versioning) · [Git](#28-git) |
+| [3 Toolchain](#3-toolchain) | [Tech stack](#31-tech-stack) · [Productivity tools](#32-productivity-tools) — reference only, not copied into projects |
 
 ## 1 Repo
 
@@ -35,6 +36,10 @@ Each project's `README.md` describes the project, not these conventions. Lead wi
 - **Commands**: the `make` targets to install, run, build, and test.
 - **Conventions**: link back to this conventions repo rather than duplicating it, `See [aracreate-conventions](...)`, and add only project-specific rules.
 - **License**: one line pointing at `LICENSE`, with the correct copyright holder.
+
+Parts 2 and 3 stay here. Do not copy them into a project README — link back to this
+repo instead. Part 3 in particular describes the developer's own machine and the
+stack we reach for, not anything a repo must contain.
 
 ## 2 Conventions
 
@@ -214,3 +219,55 @@ A single `VERSION` file at the repo root holds the current version (e.g. `0.0.1`
 - Never commit without explicit user approval
 - No `Co-Authored-By` trailers
 - Never include explicit identifiers in commit messages — no IDs, emails, usernames or tokens. Keep messages generic; the detail belongs in the file.
+
+## 3 Toolchain
+[This section is work in progress. ]
+
+The technology araCreate builds with, and the tools we work in. **Reference only** —
+nothing in this part is a repo convention, and none of it is carried into a new
+project. A project README lists its own stack (see [1.2](#12-rewriting-the-readme))
+and links back here.
+
+### 3.1 Tech stack
+
+The default choice per layer. Deviate where a project needs to, and state the
+deviation in the project README.
+
+| Layer | Tool |
+| --- | --- |
+| Web app | Next.js (App Router) + TypeScript |
+| Static site | Astro |
+| Firmware — RTOS | Zephyr |
+| Firmware — bare-metal | C + vendor HAL |
+| Embedded Linux | Raspberry Pi OS on Raspberry Pi hardware |
+| Hardware design | KiCad |
+| Task runner | make — the single entry point in every repo (see [2.5](#25-makefile)) |
+| Release automation | semantic-release, with the `changelog`, `exec`, and `git` plugins |
+| Banner | figlet, ANSI Shadow font (see [2.6](#26-motd)) |
+| Third-party code | git submodules (see [2.1.2](#212-third-party-code)) |
+
+### 3.2 Productivity tools
+
+Recommended, not required. Adopt what suits you.
+
+**Shell and terminal**
+- [Zim](https://zimfw.sh/) — modular Zsh configuration framework
+- [iTerm2](https://iterm2.com/) — terminal replacement for macOS
+- [dotfiles](https://dotfiles.github.io/) — keep shell, git, and editor config version-controlled
+
+**Editors**
+- [vim](https://www.vim.org/) / [Neovim](https://neovim.io/) — terminal editing
+- [VS Code](https://code.visualstudio.com/) — main IDE
+- [Sublime Text](https://www.sublimetext.com/) — quick edits
+
+**Window and clipboard**
+- [Rectangle](https://rectangleapp.com/) — window management
+- [Flycut](https://github.com/TermiT/Flycut) — clipboard history
+
+**Git**
+- [SourceTree](https://www.sourcetreeapp.com/) — visual git client for reviewing history and staging hunks
+
+**Automation**
+- [Alfred](https://www.alfredapp.com/) — hotkeys, text expansion, workflows
+- [DeepL](https://www.deepl.com/) — translation
+- [In Your Face](https://www.inyourface.app/) — meeting reminders that cannot be ignored
