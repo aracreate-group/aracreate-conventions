@@ -215,10 +215,15 @@ A single `VERSION` file at the repo root holds the current version (e.g. `0.0.1`
 
 ### 2.8 Git
 
-- Conventional commits (`feat:`, `fix:`, `chore:`, `refactor:`, `docs:`, etc.)
-- Never commit without explicit user approval
-- No `Co-Authored-By` trailers
-- Never include explicit identifiers in commit messages — no IDs, emails, usernames or tokens. Keep messages generic; the detail belongs in the file.
+Git conventions are kept in [`git/`](git/) so that commit format — which semantic-release parses to decide version bumps and write `CHANGELOG.md` (see [Versioning](#27-versioning)) — has exactly one definition across every repo, whatever its host.
+
+| Document | Covers |
+| --- | --- |
+| [git-conventions](git/git-conventions.md) | Ground rules, branching model, commit format, merge method, review principles. Host-independent — **always applies** |
+| [gitlab-conventions](git/gitlab-conventions.md) | Work items, merge requests, labels, milestones, `glab` |
+| [github-conventions](git/github-conventions.md) | Issues, pull requests, labels, milestones, `gh` |
+
+Read [git-conventions](git/git-conventions.md) plus the one for wherever the repo lives. Do not restate either in a project README — link to them, and add only the project's own labels, milestones and deviations.
 
 ## 3 Toolchain
 [This section is work in progress. ]
