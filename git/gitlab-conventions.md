@@ -13,13 +13,12 @@ memory, and it only holds if everyone files work the same way.
 
 | Document | Covers |
 | --- | --- |
-| [aracreate-conventions](../README.md) | What a repo *contains* — structure, headers, naming, versioning |
-| [git-conventions](git-conventions.md) | Branches, commits, merges, review — **and the ground rules that govern all of it** |
-| **This document** | GitLab's vocabulary and mechanics for the above |
+| [repo](../repo/readme.md) | What a repo *contains* — structure, headers, naming, versioning |
+| [git-conventions](git-conventions.md) | What a commit message looks like |
+| **This document** | How work is tracked and reviewed on GitLab |
 
 Nothing in [git-conventions](git-conventions.md) is repeated here. In particular
-the commit format, the branching model, the no-squash rule and the review
-principles live there and apply unchanged on GitLab.
+the commit format applies unchanged on GitLab.
 
 ## Terminology
 
@@ -32,8 +31,13 @@ Where GitLab's UI uses a word, GitLab's word wins — these are not new names.
 | **MR** | Merge request. |
 | **Thread** | A root comment plus its replies — a GitLab *discussion*, not a loose comment. |
 
-Roles — **developer** / **author**, **reviewer**, **assistant** — are defined in
-[git-conventions](git-conventions.md#terminology).
+Three roles appear throughout:
+
+| Role | Meaning |
+| --- | --- |
+| **Developer** | The person who writes the change. In review they are the **author**. |
+| **Reviewer** | The peer who approves. Never the author. |
+| **Assistant** | Whatever automation drafts, files or commits on the developer's behalf. Every step it takes is proposed and confirmed, never assumed. |
 
 ## Contents
 
@@ -55,7 +59,7 @@ The path a change takes on GitLab, and who does what.
 | --- | --- | --- |
 | 1 | client / developer | The need surfaces as a comment on an existing item, a chat, a document — or the developer hits a defect directly and investigates it. |
 | 2 | developer | Capture the origin: the permalink to that comment, or the finding itself when there is no thread to point at. |
-| 3 | assistant | Fetch the target project's labels, milestones and members, then propose the title, the description, and each field with a suggested value ([ground rule 1.2](git-conventions.md#12-selections-are-fetched-not-assumed)). |
+| 3 | assistant | Fetch the target project's labels, milestones and members, then propose the title, the description, and each field with a suggested value. |
 | 4 | developer | Confirm or correct the title and every selection. |
 | 5 | assistant | File the work item as confirmed, quoting the ask and linking the origin by full URL. Reply in the originating thread with one line: `Tracked at <URL>`. |
 | 6 | assistant | Open the MR against `develop`, letting GitLab create the source branch, and mark it `Draft:`. Same confirmation as step 4 for its title and fields. |
@@ -69,15 +73,13 @@ The path a change takes on GitLab, and who does what.
 
 What makes the order matter:
 
-- **The work item comes first**, because its iid is part of the branch name
-  ([git-conventions §2.2](git-conventions.md#22-branch-naming)). There is no
+- **The work item comes first**, because its iid is part of the branch name. There is no
   correct branch name until the item exists.
 - **The MR comes before the code.** It is opened on an empty branch and the
   commits arrive afterwards. This is exactly what the *Create merge request*
   button on a work item does; it is not a workaround. It also means the MR is
   the working record from the first line of code, not a wrapper added at the
-  end. GitLab allows this where GitHub does not
-  ([github-conventions §1](github-conventions.md#1-workflow)).
+  end. GitLab allows this where GitHub does not.
 - **`Draft:` from creation** (step 6), not once the code lands. An MR that is
   briefly non-draft is an MR that can be merged before anyone has looked at it.
 - **Nothing is filed before it is confirmed.** Step 3 is a proposal and step 4 is
@@ -111,7 +113,7 @@ The link shows up on the board; the sentence does not.
 
 Conventional-commit prefix, then a lowercase imperative summary — the same shape
 as the commit that will land
-([git-conventions §3.1](git-conventions.md#31-format)):
+([git-conventions §1](git-conventions.md#1-format)):
 
 ```
 feat: import hand-edited test profile at runtime from bench tool
@@ -120,7 +122,7 @@ docs: provide CAN bit timing details
 build: update makefiles to build in fresh development environment
 ```
 
-- No articles ([git-conventions §1.4](git-conventions.md#14-wording)).
+- No articles ([git-conventions §3](git-conventions.md#3-wording)).
 - Prefix with `[wip]` when the item is an open collection still being filled,
   rather than a defined piece of work.
 - Do not encode the type in the title (`Discussion: …`) — that is the
@@ -165,8 +167,7 @@ Scope will be defined once the above is available.
 
 **There is no araCreate label set.** Each project — or each client group —
 defines its own, and it evolves with the project. Read the project's labels from
-the project ([§7](#7-glab)) and have the developer choose from them
-([ground rule 1.2](git-conventions.md#12-selections-are-fetched-not-assumed)).
+the project ([§7](#7-glab)) and have the developer choose from them.
 What follows are the rules that hold whatever the vocabulary is.
 
 - **Exactly one type label per item.** The type answers "what kind of work is
@@ -237,8 +238,7 @@ comment thread per topic. Rules for those:
   comment, so the context stays attached ([§7](#7-glab)).
 - **When a thread turns into work**, open a work item in the owning repo and
   reply in that thread with a single line: `Tracked at <URL>`. No scope recap —
-  the item carries the detail
-  ([ground rule 1.5](git-conventions.md#15-one-record-per-fact)).
+  the item carries the detail.
 - **Never tick someone else's checkbox.** The link is the record.
 - **Resolve a thread when the question it asked is answered**, not when the
   reply is posted. An unresolved thread is an open question.
@@ -248,8 +248,7 @@ comment thread per topic. Rules for those:
 ### 3.1 Branch
 
 Create the branch **from the work item** so the link is automatic. That gives
-`<iid>-<slugified-title>`
-([git-conventions §2.2](git-conventions.md#22-branch-naming)):
+`<iid>-<slugified-title>`:
 
 ```
 136-feat-derive-ble-device-name-from-chip-uid
@@ -271,8 +270,7 @@ feat: derive BLE device name from chip uid
 - Replace GitLab's auto-generated `Resolve "…"` title, with the developer
   approving the wording as for a work item ([§2.2](#22-title)).
 - **Open every MR as `Draft:`**, at creation, before the first commit lands on
-  it. Clear the prefix only when it is genuinely ready for review
-  ([git-conventions §5.1](git-conventions.md#51-before-requesting-review)).
+  it. Clear the prefix only when it is genuinely ready for review.
 - **Retitle when the scope grows.** An MR keeps the branch name it was born
   with, so the title is the only place a reviewer scanning the MR list sees what
   is actually inside. If the second change does not belong under the first
@@ -301,7 +299,7 @@ Anything unresolved or deferred. Drop the section when there is nothing.
 
 `Closes #<iid>` on the first line so the item closes on merge — this is where
 the closing reference lives, not in the commits
-([git-conventions §3.2](git-conventions.md#32-reference-trailer)). When an MR
+([git-conventions §2](git-conventions.md#2-reference-trailer)). When an MR
 closes more than one item, list each on its own `Closes` line and say in **Why**
 why they land together.
 
@@ -321,10 +319,8 @@ never revisited misleads more than an empty one.
 
 ## 4 Review and merge
 
-The principles are in
-[git-conventions §5](git-conventions.md#5-review) — readiness, the comment
-prefixes, one peer minimum, the author never approving. GitLab's mechanics for
-them:
+One peer review before merge, and the author never approves their own change.
+GitLab's mechanics for that:
 
 - **`Draft:` in the title** is the readiness signal. GitLab blocks merge while
   it is there, which is why it goes on at creation.
@@ -333,8 +329,7 @@ them:
 - **Threads must be resolved** before merge — that is a project setting
   ([§5](#5-project-setup)), and it is what stops a review comment being lost in
   a long MR.
-- **Merge with the pipeline green**, source branch deleted, no squash
-  ([git-conventions §4](git-conventions.md#4-merging)).
+- **Merge with the pipeline green**, source branch deleted, no squash.
 - The work item closes via `Closes #<iid>`. Reply wherever the work was tracked
   that it is resolved ([§2.7](#27-threads)).
 
@@ -365,12 +360,12 @@ here.
 
 | Setting | Value | Why |
 | --- | --- | --- |
-| Squash commits | *Do not allow* | [git-conventions §4](git-conventions.md#4-merging) |
+| Squash commits | *Do not allow* | Every commit keeps its own conventional message |
 | Delete source branch | Enabled by default | The MR keeps the history |
-| Pipelines must succeed | Required | [git-conventions §5.1](git-conventions.md#51-before-requesting-review) |
+| Pipelines must succeed | Required | A red pipeline wastes the reviewer's turn |
 | All threads resolved | Required | [§4](#4-review-and-merge) |
-| Approvals required | At least 1 | [git-conventions §5.3](git-conventions.md#53-who-approves-and-who-merges) |
-| Default target branch | `develop` | GitFlow ([git-conventions §2.1](git-conventions.md#21-model)) |
+| Approvals required | At least 1 | The author does not approve their own change |
+| Default target branch | `develop` | GitFlow |
 
 **Protected branches** — `main` and `develop` protected; no direct pushes, no
 force-pushes.
@@ -389,7 +384,7 @@ force-pushes.
 | Scope | split into child tasks, not a checklist | one concern; split rather than rename |
 | Merge | closed by the MR | no squash · reviewer approves · developer merges |
 
-Everything about branches, commits and merges is in
+Commit message rules are in
 [git-conventions §6](git-conventions.md#6-quick-reference).
 
 ## 7 glab
@@ -400,7 +395,7 @@ treat `glab` as the dependable path rather than something to fall back to after
 debugging.
 
 Draft descriptions and comments **to a file** and review them before they are
-sent ([ground rule 1.1](git-conventions.md#11-nothing-is-published-without-an-explicit-instruction))
+sent ([git-conventions §5](git-conventions.md#5-publishing))
 — every recipe below reads its body from one.
 
 ### Read the project's options first
