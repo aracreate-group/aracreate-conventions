@@ -1,239 +1,40 @@
 # araCreate Conventions
 
-The canonical reference for the conventions every araCreate Group repository follows. New repos are set up to match the structure and standards documented here, and each project's own README links back to this repo rather than duplicating the rules.
+The canonical reference for the conventions every araCreate Group repository follows.
+New repos are set up to match the structure and standards documented here, and each
+project's own README links back to this repo rather than duplicating the rules.
 
-| Part | Covers |
+Conventions are grouped by domain, one folder each. A folder exists when there is a
+convention to put in it — the set of folders is the catalogue, so a tool with nothing
+written for it yet has no folder.
+
+## What lives here
+
+| Folder | Covers |
 | --- | --- |
-| [1 Repo](#1-repo) | [Creating a new repo](#11-creating-a-new-repo) · [Rewriting the README](#12-rewriting-the-readme) |
-| [2 Conventions](#2-conventions) | [Repo structure](#21-repo-structure) · [Copyright](#22-copyright-and-ownership) · [File headers](#23-file-headers) · [Naming](#24-naming-conventions) · [Makefile](#25-makefile) · [motd](#26-motd) · [Versioning](#27-versioning) · [Git](#28-git) |
-| [3 Toolchain](#3-toolchain) | [Tech stack](#31-tech-stack) · [Productivity tools](#32-productivity-tools) — reference only, not copied into projects |
+| [repo/](repo/) | Repo structure, the project scaffold in [`repo/template/`](repo/template/), copyright, file headers, naming, Makefile, motd, versioning |
+| [git/](git/) | Commit message format, plus the platform document for GitLab |
 
-## 1 Repo
+Read [`git/git-conventions.md`](git/git-conventions.md) whatever the repo, then the
+platform document for wherever it is hosted. Commit format is defined there once and
+nowhere else, because semantic-release parses it to decide version bumps and write
+`CHANGELOG.md`.
 
-Setting up a new repo to follow these conventions, and writing its README.
+## Starting a new repo
 
-### 1.1 Creating a new repo
+Copy [`repo/template/`](repo/template/) and follow
+[repo §1](repo/readme.md#1-starting-a-repo). It carries the full folder set, the
+`Makefile`, `scripts/motd`, `VERSION`, `LICENSE` and `.gitignore` with placeholders
+ready to replace.
 
-Base a new repo on this structure, then make it the project's own:
-
-1. **Set the project identity** by replacing the placeholders:
-   - `CLIENT-PRODUCT-PROJECT` — the repo / slug name; used as the repo directory name.
-   - `PROJECT NAME` — the display name; appears in `scripts/motd` as the figlet banner and the `Description` line beneath it.
-2. **Regenerate the motd banner and header** — see [motd](#26-motd).
-3. **Set the version** to `0.0.1` in the `VERSION` file. semantic-release manages it after the first release.
-4. **Choose the `src/` layout** for the project type (see below) and remove the layouts that do not apply.
-5. **Check `LICENSE`** is correct for the project.
-6. **Rewrite this `README.md`** as the project's own README (see next).
-
-### 1.2 Rewriting the README
-
-Each project's `README.md` describes the project, not these conventions. Lead with the project, not the standards, and keep this shape:
-
-- **Title**: the product or project name.
-- **Description**: a line on what it does and who it is for, optionally a short "What it does" list.
-- **Stack**: the main technologies, a `Layer | Tool` table reads well for software.
-- **Architecture / layout**: data model, app structure, or hardware details as the project needs.
-- **Commands**: the `make` targets to install, run, build, and test.
-- **Conventions**: link back to this conventions repo rather than duplicating it, `See [aracreate-conventions](...)`, and add only project-specific rules.
-- **License**: one line pointing at `LICENSE`, with the correct copyright holder.
-
-Parts 2 and 3 stay here. Do not copy them into a project README — link back to this
-repo instead. Part 3 in particular describes the developer's own machine and the
-stack we reach for, not anything a repo must contain.
-
-## 2 Conventions
-
-The standing rules every araCreate repo follows. Keep them in place when you rewrite this README, and link back here rather than duplicating them.
-
-### 2.1 Repo structure
-
-```
-project-name/
-├── src/              # Project source — app, firmware, or hardware design (by type)
-│   └── readme.md
-├── docs/             # Documentation — datasheets, schematics, BOMs, notes
-│   └── readme.md
-├── tests/            # Tests, bring-up scripts, and prototypes
-│   └── readme.md
-├── releases/         # Shippable outputs — binaries, firmware, fab files
-│   └── readme.md
-├── logs/             # Project-log media — photos, videos, notes
-│   └── readme.md
-├── .archives/        # Archived approaches trialled but not shipped
-│   └── readme.md
-├── scripts/          # Helper scripts + motd banner
-│   ├── readme.md
-│   └── motd          # ANSI Shadow project name + metadata
-├── Makefile          # Unified entry point
-├── CHANGELOG.md      # Auto-generated by semantic-release
-├── VERSION           # Single source of truth for the version
-├── .gitignore        # OS, editor, and build cruft
-├── .gitmodules       # Only when vendoring third-party code (see below)
-├── LICENSE
-└── README.md
-```
-
-Create **all** top-level folders when scaffolding a new project, even the ones a project does not use yet. Each holds a lowercase `readme.md` describing its purpose — this keeps the empty folder tracked by git and documents its role, so the structure is uniform across every repo. Use the `readme.md` instead of a `.gitkeep`. See [Naming conventions](#24-naming-conventions) for README casing.
-
-Every project keeps the full set even when a folder starts empty:
-
-- **`releases/`** — shippable release files: compiled binaries, firmware images, or PCB fabrication outputs (Gerbers, BOM, assembly). Committed and tagged, not gitignored build cruft.
-- **`logs/`** — project-log media: dated photos, videos, and notes tracking build progress. Common on hardware and physical-build projects.
-- **`.archives/`** — an archive of approaches trialled during development but not shipped. Document what was tried and why it was dropped, so the knowledge is kept without cluttering `src/`.
-
-#### 2.1.1 `src/` by project type
-
-**Software (Next.js / web)**
-```
-src/
-├── app/            # Next.js App Router routes
-├── components/     # UI components
-├── lib/            # Business logic, data access
-├── types/          # TypeScript types
-├── data/           # JSON / data files
-└── public/         # Static assets
-```
-
-**Firmware — Zephyr**
-```
-src/
-├── main.c
-├── include/
-├── drivers/
-├── boards/
-├── CMakeLists.txt
-└── prj.conf
-```
-
-**Firmware — Bare-metal**
-```
-src/
-├── main.c
-├── hal/
-├── drivers/
-├── include/
-└── lib/
-```
-
-**Hardware — KiCad**
-```
-src/
-├── project.kicad_pro
-├── schematic.kicad_sch
-├── pcb.kicad_pcb
-└── libraries/
-```
-
-Fabrication outputs (Gerbers, BOM, assembly) go in the top-level `releases/` folder.
-
-#### 2.1.2 Third-party code
-
-Vendor external code you do not maintain (drivers, HATs, upstream libraries) as a
-git submodule under the relevant `src/` path, recorded in
-`.gitmodules`. Do not edit it in place.
-
-### 2.2 Copyright and ownership
-
-The copyright holder is whoever owns the IP:
-
-- **araCreate Group** for internal products.
-- **The client** for client-owned work, e.g. `Copyright (C) 2026, Felix Christmann Industrial Design.`
-
-Use the same holder consistently across `LICENSE`, every file header, the
-`Makefile` header, and `scripts/motd`. Write it as `Copyright (C) 2026, <holder>`.
-
-### 2.3 File headers
-
-Every source file must start with the licence header, using the comment syntax
-of the language (`//` for JS/TS/C/C++, `#` for Python, with a `#!` shebang line
-first where applicable):
-
-```
-// SPDX-License-Identifier: LicenseRef-Proprietary
-// Copyright (C) 2026, araCreate Group
-// Author: Aravinth Panch <ara@aracreate.group>
-// Description: This file contains <what>
-```
-
-**JSON data files**: no comments, use a `_meta` object instead:
-```json
-{
-  "_meta": {
-    "spdx": "LicenseRef-Proprietary",
-    "copyright": "Copyright (C) 2026, araCreate Group",
-    "author": "Aravinth Panch <ara@aracreate.group>",
-    "description": "This file contains <what> in JSON format"
-  },
-  "data": []
-}
-```
-
-- Description format: `"This file contains <what>"`
-- No version in file headers (see [Versioning](#27-versioning))
-- Leave exactly one empty line between the header and the file content
-
-### 2.4 Naming conventions
-
-- **param-case**: file names, URLs, CSS classes, CLI flags, HTML attributes. Brand names follow the same rule (e.g. `aracreate-config.json`)
-- **snake_case**: JSON keys, JS/TS variables/properties, Python variables, C variables
-- **README casing**: only the repo-root `README.md` is capitalised; folder-level `readme.md` files are lowercase, but their H1 title is uppercase (e.g. `# ARCHIVE`)
-
-### 2.5 Makefile
-
-Every repo has a `Makefile` at root. Standard targets:
-
-```makefile
-make install    # Install dependencies / tools
-make setup      # Set up environment
-make dev        # Run locally (software)
-make build      # Build / compile
-make test       # Run tests
-make release    # Cut semantic release
-make clean      # Remove build artefacts
-```
-
-`make help` (default target) prints `scripts/motd` followed by the target list, via `MOTD := ./scripts/motd` and `@cat $(MOTD)`. All targets are declared `.PHONY`, and in a real project each usually `cd`s into `SRC_DIR` before running its command.
-
-These targets are a baseline. Extend them per project (`start`, `lint` for web; `run`, `debug`, `update`, `flash` for firmware) but keep the shared names consistent.
-
-### 2.6 motd
-
-`scripts/motd` uses **ANSI Shadow** font (via figlet) for the project name, followed by the standard file header (`#` comments):
-
-```
-# SPDX-License-Identifier: LicenseRef-Proprietary
-# Copyright (C) 2026, araCreate Group
-# Author: Aravinth Panch <ara@aracreate.group>
-# Description: PROJECT NAME
-```
-
-The `Description` is the project name (no `This file contains …` text, and no prefix). Generate the banner with: `figlet -f "ANSI Shadow" "PROJECT NAME"`
-
-### 2.7 Versioning
-
-A single `VERSION` file at the repo root holds the current version (e.g. `0.0.1`) and is the single source of truth. Do not repeat the version in file headers, the `Makefile`, or `scripts/motd`. semantic-release bumps `VERSION` and generates `CHANGELOG.md` from the first release onward.
-
-### 2.8 Git
-
-Git conventions are kept in [`git/`](git/) so that commit format — which semantic-release parses to decide version bumps and write `CHANGELOG.md` (see [Versioning](#27-versioning)) — has exactly one definition across every repo, whatever its host.
-
-| Document | Covers |
-| --- | --- |
-| [git-conventions](git/git-conventions.md) | Ground rules, branching model, commit format, merge method, review principles. Host-independent — **always applies** |
-| [gitlab-conventions](git/gitlab-conventions.md) | Work items, merge requests, labels, milestones, `glab` |
-| [github-conventions](git/github-conventions.md) | Issues, pull requests, labels, milestones, `gh` |
-
-Read [git-conventions](git/git-conventions.md) plus the one for wherever the repo lives. Do not restate either in a project README — link to them, and add only the project's own labels, milestones and deviations.
-
-## 3 Toolchain
-[This section is work in progress. ]
+## Toolchain
 
 The technology araCreate builds with, and the tools we work in. **Reference only** —
-nothing in this part is a repo convention, and none of it is carried into a new
-project. A project README lists its own stack (see [1.2](#12-rewriting-the-readme))
-and links back here.
+nothing here is a repo convention, and none of it is carried into a new project. A
+project README lists its own stack (see
+[repo §1.2](repo/readme.md#12-writing-the-readme)) and links back here.
 
-### 3.1 Tech stack
+### Tech stack
 
 The default choice per layer. Deviate where a project needs to, and state the
 deviation in the project README.
@@ -246,12 +47,12 @@ deviation in the project README.
 | Firmware — bare-metal | C + vendor HAL |
 | Embedded Linux | Raspberry Pi OS on Raspberry Pi hardware |
 | Hardware design | KiCad |
-| Task runner | make — the single entry point in every repo (see [2.5](#25-makefile)) |
+| Task runner | make — the single entry point in every repo (see [repo §4.1](repo/readme.md#41-makefile)) |
 | Release automation | semantic-release, with the `changelog`, `exec`, and `git` plugins |
-| Banner | figlet, ANSI Shadow font (see [2.6](#26-motd)) |
-| Third-party code | git submodules (see [2.1.2](#212-third-party-code)) |
+| Banner | figlet, ANSI Shadow font (see [repo §4.2](repo/readme.md#42-motd)) |
+| Third-party code | git submodules (see [repo §2.2](repo/readme.md#22-third-party-code)) |
 
-### 3.2 Productivity tools
+### Productivity tools
 
 Recommended, not required. Adopt what suits you.
 
@@ -276,3 +77,7 @@ Recommended, not required. Adopt what suits you.
 - [Alfred](https://www.alfredapp.com/) — hotkeys, text expansion, workflows
 - [DeepL](https://www.deepl.com/) — translation
 - [In Your Face](https://www.inyourface.app/) — meeting reminders that cannot be ignored
+
+## License
+
+Proprietary. See [LICENSE](LICENSE).
