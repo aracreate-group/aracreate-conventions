@@ -47,7 +47,7 @@ Three roles appear throughout:
 | [2 Work items](#2-work-items) | Type · title · description · labels · milestone · status · threads |
 | [3 Merge requests](#3-merge-requests) | Branch · title · description · draft state |
 | [4 Review and merge](#4-review-and-merge) | GitLab's mechanics for approval and merge |
-| [5 Project setup](#5-project-setup) | Templates, labels, milestones and merge settings a repo needs |
+| [5 Project setup](#5-project-setup) | Labels, milestones and merge settings a repo needs |
 | [6 Quick reference](#6-quick-reference) | The rules in one table |
 | [7 glab](#7-glab) | Command-line recipes |
 
@@ -65,7 +65,7 @@ The path a change takes on GitLab, and who does what.
 | 6 | assistant | Open the MR against `develop`, letting GitLab create the source branch, and mark it `Draft:`. Same confirmation as step 4 for its title and fields. |
 | 7 | developer | Check the branch out locally and put the work on it — new edits, or changes lifted from a stash. |
 | 8 | assistant | Commit and push. The commits attach themselves to the MR opened in step 6. |
-| 9 | assistant | Fill in the MR description from the template ([§3.3](#33-description)), including **Test** and **Open**. |
+| 9 | assistant | Fill in the MR description to the shape in [§3.3](#33-description), including **Test** and **Open**. |
 | 10 | developer | Self-review, wait for a green pipeline, clear `Draft:`, request review. |
 | 11 | reviewer | Review and approve ([§4](#4-review-and-merge)). |
 | 12 | developer | Merge. |
@@ -141,7 +141,9 @@ build: update makefiles to build in fresh development environment
 ### 2.3 Description
 
 A work item captures **what is known when it is filed** — the ask, and what is
-still missing to act on it. Nothing more. The shape that works:
+still missing to act on it. Nothing more. Two shapes cover it.
+
+**A follow-up or direct ask**:
 
 ```markdown
 Follow-up from [<repo>#<iid> (comment)](<full url>) — @author:
@@ -156,17 +158,30 @@ One or two lines of what that means, if the quote does not stand alone.
 Scope will be defined once the above is available.
 ```
 
-- Quote the ask **as written**. A paraphrase loses the detail that turns out to
-  matter, and the quote is the one part nobody can reconstruct later.
+**A defect** — what the reporter had, not a diagnosis:
+
+```markdown
+### Summary
+### Steps to reproduce
+### Build / environment
+### Current behaviour
+### Expected behaviour
+### Logs or screenshots
+```
+
+- Quote the ask **as written** in the follow-up shape. A paraphrase loses the
+  detail that turns out to matter, and the quote is the one part nobody can
+  reconstruct later.
 - Do **not** write scope, design, or acceptance criteria from reading the code at
-  filing time. Investigation belongs in development and its output belongs in
-  the MR description — an item padded with a guessed plan reads as decided when
-  it is not, and goes stale the moment development starts.
+  filing time, in either shape. Investigation belongs in development and its
+  output belongs in the MR description — an item padded with a guessed plan
+  reads as decided when it is not, and goes stale the moment development
+  starts.
 - Where a decision has already been taken in the thread, record the decision and
   who took it. That is history, not a plan.
 - For a defect, give what the reporter had: what was observed, on which build,
-  under what conditions. Add `confirmed` once it is reproduced
-  ([§2.4](#24-labels)).
+  under what conditions — not a guessed cause. Add `confirmed` once it is
+  reproduced ([§2.4](#24-labels)).
 - Sections that would be empty are dropped, not left as headings.
 
 ### 2.4 Labels
@@ -309,6 +324,11 @@ the closing reference lives, not in the commits
 closes more than one item, list each on its own `Closes` line and say in **Why**
 why they land together.
 
+**Why** and **How** carry the reasoning a diff cannot: "fixed the bug" or
+"updated the config" tells a future reader nothing they did not already have
+from the diff. Say what the problem was, why this is the right approach, and
+flag any known shortcoming in **How** rather than leaving it to be found later.
+
 **Test** carries the evidence, not the intent: "verified it works" proves
 nothing on its own. A before/after table of observed values, the log line
 that settles it, or a screenshot for anything visual is what lets a reviewer
@@ -346,15 +366,11 @@ GitLab's mechanics for that:
 What a GitLab repo needs in place so the conventions above are enforced by the
 tool rather than by memory.
 
-**Description templates**, committed to the repo:
-
-```
-.gitlab/
-├── issue_templates/
-│   └── default.md              # §2.3 shape
-└── merge_request_templates/
-    └── default.md              # §3.3 shape
-```
+**Description shapes** are not committed to the repo. GitLab's own description
+templates would need a `.gitlab/` directory in every project, which is a copy of
+this document that drifts from it; the shapes in [§2.3](#23-description) and
+[§3.3](#33-description) are the source of truth, and descriptions are drafted
+from them ([§1](#1-workflow)).
 
 **Labels and milestones** — each project defines its own set, following the
 rules in [§2.4](#24-labels) and [§2.5](#25-milestone), and **documents it in the
