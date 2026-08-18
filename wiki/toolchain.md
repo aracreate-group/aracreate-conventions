@@ -51,3 +51,19 @@ Recommended, not required. Adopt what suits you.
 - [Alfred](https://www.alfredapp.com/) — hotkeys, text expansion, workflows
 - [DeepL](https://www.deepl.com/) — translation
 - [In Your Face](https://www.inyourface.app/) — meeting reminders that cannot be ignored
+
+## 3 Ad hoc UI verification
+
+For a repo with no browser test tooling of its own, verify a web UI change
+headlessly with [Playwright](https://playwright.dev/), installed ephemerally
+rather than as a project dependency:
+
+```sh
+uv run --with playwright playwright install chromium   # once, caches globally
+uv run --with playwright python script.py               # drive / screenshot
+```
+
+(Swap `uv run --with playwright` for `npx --yes playwright` in a Node
+project.) Install `chromium` only, not the full three-engine
+`playwright install`, since one engine is enough for a screenshot or a
+click-through check. Leaves no trace in the project's own dependencies.
