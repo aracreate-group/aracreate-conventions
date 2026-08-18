@@ -87,6 +87,12 @@ What makes the order matter:
   project's options but the developer chooses among them.
 - **The author does not approve, and the assistant does not merge.** Steps 8, 11
   and 12 are deliberately different actors.
+- **The plan leads with numbered steps, context after.** When an assistant
+  drafts an implementation plan before writing code, it opens with a numbered
+  **Steps** list covering the whole piece of work end to end, filing or
+  updating the item, opening the MR, the code change, verification, so the
+  developer can refer back to a step by number once it's shown. **Context**
+  (the why, the background) follows, not before.
 
 ## 2 Work items
 
@@ -303,11 +309,13 @@ the closing reference lives, not in the commits
 closes more than one item, list each on its own `Closes` line and say in **Why**
 why they land together.
 
-**Test** carries the evidence, not the intent — "verified on a bench unit"
-proves nothing on its own. A before/after table of observed values, the log line
+**Test** carries the evidence, not the intent: "verified it works" proves
+nothing on its own. A before/after table of observed values, the log line
 that settles it, or a screenshot for anything visual is what lets a reviewer
 trust a behavioural claim without repeating the work. Say which build it was
-measured on.
+measured on. Where testing spans more than one environment, list each tier's
+result separately rather than folding them into one line, since a reviewer
+needs to know which claim came from which.
 
 **Open** is the only record of anything found and deliberately not fixed. Once
 the MR merges it is closed and nobody reads it again, so a defect parked there
@@ -464,6 +472,21 @@ as they are pushed.
 ```sh
 glab mr update <mr iid> --description "$(cat body.md)"
 ```
+
+### Attach an image to a description
+
+Upload the file first, then paste the returned path into `body.md` before
+sending the description. `--field` will not do a file upload, it silently
+400s; use `--form` for the multipart request:
+
+```sh
+glab api --method POST "projects/<path>/uploads" --form "file=@<path-to-image>"
+# -> {"markdown": "![alt](/uploads/<hash>/<file>)", ...}
+```
+
+Leave a full **blank line** between any label above the image (`Before:`,
+`After:`) and the `![...](...)` line, since a bare newline still renders the
+two inline in the same paragraph.
 
 ### Reply inside an existing thread
 
