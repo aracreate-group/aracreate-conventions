@@ -6,7 +6,7 @@ of everything below lives in [`template/`](template/).
 | Part | Covers |
 | --- | --- |
 | [1 Starting a repo](#1-starting-a-repo) | [From the template](#11-from-the-template) · [Writing the README](#12-writing-the-readme) |
-| [2 Structure](#2-structure) | [`src/` by project type](#21-src-by-project-type) · [Third-party code](#22-third-party-code) |
+| [2 Structure](#2-structure) | [`src/` by project type](#21-src-by-project-type) · [Third-party code](#22-third-party-code) · [Multi-service repos](#23-multi-service-repos) |
 | [3 Files](#3-files) | [Copyright](#31-copyright-and-ownership) · [File headers](#32-file-headers) · [Naming](#33-naming-conventions) |
 | [4 Build](#4-build) | [Makefile](#41-makefile) · [motd](#42-motd) · [Versioning](#43-versioning) |
 
@@ -132,6 +132,27 @@ Vendor external code you do not maintain (drivers, HATs, upstream libraries) as 
 git submodule under the relevant `src/` path, recorded in
 `.gitmodules`. Do not edit it in place. The submodule mechanics are in
 [git-conventions](../git/git-conventions.md).
+
+### 2.3 Multi-service repos
+
+A repo building more than one deployable service — containers behind one
+`docker-compose.yml` — keeps the structure above and adds:
+
+- **One folder per service under `src/`**, each its own build context.
+- **Docs never live in a service folder.** `docs/<service>/` holds the depth with
+  its own `readme.md` indexing it; the service folder keeps a short `readme.md`
+  saying what it is, how to run it, and linking on. Two copies of the same material
+  is how docs drift, and the copy nearer the code wins — so the one under `docs/`
+  rots.
+- **Third-party reference material goes in `docs/ref/<vendor>/`** — manuals,
+  datasheets, captures — apart from what the project documents itself.
+- **Whatever a service needs at runtime stays inside its folder**, because the
+  folder is its build context: a file moved to the repo root is absent from the
+  image. Files for a human move out — docs to `docs/<service>/`, laptop-side probes
+  to `scripts/`.
+- **A project-root `.dockerignore` governs a balena multicontainer build**, applied
+  across every service context. `docker compose build` alone does not read it, so a
+  pattern naming `src/<svc>/…` only takes effect on a balena push.
 
 ## 3 Files
 
