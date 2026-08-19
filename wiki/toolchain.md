@@ -67,3 +67,17 @@ uv run --with playwright python script.py               # drive / screenshot
 project.) Install `chromium` only, not the full three-engine
 `playwright install`, since one engine is enough for a screenshot or a
 click-through check. Leaves no trace in the project's own dependencies.
+
+## 4 Verifying documentation
+
+A doc that contradicts the code is worse than a missing one. Three checks, cheap
+enough to run on every docs change:
+
+- **Resolve every link.** Walk the markdown, resolving each relative target and each
+  `#anchor` against the target file's headings. Run it per commit, not only at the
+  tip, so a series that moves files leaves no broken commit behind.
+- **Generate lists from the code.** Command tables come from `--help`, route tables
+  from the running app. Where a doc and the code disagree, the code decides.
+- **Check an index both ways.** Every pointer resolves to a file, and every file has
+  a pointer.
+
