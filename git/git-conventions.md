@@ -120,6 +120,17 @@ messages, where it notifies no one and only dates the history.
 everything present; an unrelated file caught by a blanket `git add` lands under a
 message that does not describe it.
 
+**Split a file that spans two concerns** rather than letting the smaller change
+ride along. Stage the hunks belonging to this commit and leave the rest —
+`git add -p`, or a patch built from `git diff` and applied with
+`git apply --cached`. A commit carrying someone else's change is a commit whose
+message is wrong.
+
+**`git mv` stages the rename immediately.** Both paths sit in the index from that
+moment, so the next `git add <paths>` and commit sweeps them in although they were
+never named. Check `git diff --cached --stat` before committing after a move, and
+`git reset -- <path>` anything belonging to a later commit.
+
 **Refactoring that is needed to make a fix possible goes in its own commit**, so
 the fix is legible on its own.
 
