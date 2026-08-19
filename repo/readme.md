@@ -222,6 +222,20 @@ make clean      # Remove build artefacts
 
 These targets are a baseline. Extend them per project (`start`, `lint` for web; `run`, `debug`, `update`, `flash` for firmware) but keep the shared names consistent. Drop the ones a repo genuinely has no use for.
 
+`make setup` **tops up an existing environment file** rather than refusing to touch
+it: append the keys the example has and the local file lacks, never editing a value
+already set. Refusing means a checkout made before a setting existed never learns of
+it, and the setting then falls back silently at runtime.
+
+**Forward environment variables from a list, not a block each.** A per-variable
+`ifneq` block invites omission, and the variable nobody adds is the one that breaks
+a deploy quietly:
+
+```makefile
+_FORWARD := TOKEN PROJECT_URL PSU_HOST AUTH_USER AUTH_PASS
+_ENV := $(foreach v,$(_FORWARD),$(if $($(v)),--env $(v)=$($(v)),))
+```
+
 ### 4.2 motd
 
 `scripts/motd` uses **ANSI Shadow** font (via figlet) for the project name, followed by the standard file header (`#` comments):
