@@ -517,3 +517,39 @@ glab api --method POST \
 Find the discussion id with
 `glab api "projects/<path>/issues/<iid>/discussions"` and match on the note id
 from the comment's permalink (`#note_<id>`).
+
+### Work items through the issues API
+
+`glab work-item` does not exist (there is an experimental `glab work-items` group).
+A work item at `/-/work_items/<iid>` is reachable as an issue:
+
+```sh
+glab issue view <iid> --repo <group>/<project>
+glab api "projects/<id>/issues/<iid>"
+glab api "projects/<id>/issues/<iid>/discussions"
+```
+
+**Status is not an issue field.** Where a group defines custom statuses
+(`WorkItems::Statuses::Custom`), status lives on the work-item GraphQL type and the
+available fields differ by GitLab version — `allowedStatuses` is absent on some.
+Read the current status over GraphQL before trying to set one, or set it in the UI.
+
+### Find every reference before a rename
+
+Renaming a project leaves its old path in other repos' docs and in item text. GitLab
+redirects keep them working, so nothing fails loudly:
+
+```sh
+glab api "groups/<group>/search?scope=issues&search=<old-name>"
+glab api "groups/<group>/search?scope=merge_requests&search=<old-name>"
+```
+
+Search sibling working copies too: committed generated output (Sphinx HTML, search
+indexes) carries the old name, where a docs rebuild rather than an edit is the fix.
+
+### Read a description back after posting it
+
+`glab mr update --description` reports success without showing what landed. Read it
+back and check the shape survived: `Closes #N` on the first line, the section
+headings, and the image count.
+
