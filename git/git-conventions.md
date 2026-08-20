@@ -126,6 +126,18 @@ ride along. Stage the hunks belonging to this commit and leave the rest —
 `git apply --cached`. A commit carrying someone else's change is a commit whose
 message is wrong.
 
+**A zero-context patch places hunks by line number.** `git diff -U0` gives the
+finest split, but `git apply --cached --unidiff-zero` trusts those numbers instead
+of matching context, so omitting an earlier hunk silently misplaces every later
+one — the file still applies and no longer parses. Either keep context (`-U3`, so
+git locates each hunk) or build the intended file content and write it to the
+index, and re-diff after every commit so the offsets stay valid.
+
+**Prove the split lost nothing.** Two checks: selecting *all* hunks must reproduce
+the working tree byte for byte, and the finished branch must diff identically
+against its base to a patch taken before the split started. Keep that patch until
+the last commit lands.
+
 **`git mv` stages the rename immediately.** Both paths sit in the index from that
 moment, so the next `git add <paths>` and commit sweeps them in although they were
 never named. Check `git diff --cached --stat` before committing after a move, and
@@ -150,6 +162,18 @@ instruction, however strongly it implies one is coming:
 Prepare the work, draft the message **to a file** and show it, say what is ready,
 and wait.
 
+Cutting a release is publishing too: it commits `VERSION` and `CHANGELOG.md`,
+tags, and pushes both. **`semantic-release` run outside CI does nothing, loudly** —
+with no CI environment detected it falls back to dry-run while still printing
+`✔ Published release <version>` and the full notes. From a laptop it needs
+`--no-ci`. Either way verify afterwards rather than trusting the output:
+
+```sh
+cat VERSION            # bumped?
+git tag | head -1      # tag created?
+git status -sb         # release commit, and is it pushed?
+```
+
 ## 6 Quick reference
 
 | | Rule |
@@ -160,4 +184,6 @@ and wait.
 | Trailer | bare `#<n>` on the last line · no closing keyword · no URL · omitted when untracked |
 | Never in a message | emails · usernames · real names · tokens · `Co-Authored-By` |
 | Scope | one concern · staged by path · stands on its own |
+| Splitting | keep context or build the blob · all-hunks rebuild must match · diff the branch against a pre-split patch |
 | Publishing | explicit instruction for each act — see [§5](#5-publishing) |
+| Releases | publishing too · `semantic-release` needs `--no-ci` off CI · verify VERSION and the tag |
