@@ -103,6 +103,13 @@ What makes the order matter:
 | **Issue** | A standalone piece of work, a discussion, or a collection that spawns children. |
 | **Task** | A child of an issue. Never on its own — a task always has a parent. |
 
+Those two are the whole hierarchy inside a project: an **Issue accepts only Task
+children**, and only an **Epic** accepts Issue children. So two items already filed
+as issues cannot be nested under a third without converting them into tasks, which
+rewrites what the reporter filed. When they belong together, leave them as they are
+and let one MR close both, with a `Closes` line each
+([§3.3](#33-description)) and a related link between them.
+
 Break a large issue into child tasks rather than a checklist in the description,
 so each piece carries its own assignee, milestone and MR. A checklist item
 cannot be scheduled, assigned or merged; a task can.
@@ -280,6 +287,12 @@ the work item, or `--create-source-branch` ([§7](#7-glab)). A branch created by
 hand off `develop` and pushed separately gets the same name but not the same
 provenance, and the MR then has to be attached to it after the fact.
 
+**The source branch is fixed for the life of the MR.** GitLab can retarget an MR
+but never re-point it at a different source branch, and with squash off the branch
+name is written into the merge commit permanently — `Merge branch 'test' into
+'dev'` is forever. So never open an MR from a scratch branch meaning to rename it
+later: close it and open a new one from the item.
+
 ### 3.2 Title and draft state
 
 Same conventional prefix as the commit that will land:
@@ -405,6 +418,7 @@ force-pushes.
 | Status | `todo` → `in-progress` → `review` | `Draft:` → ready → approved → merged |
 | Links | full URLs across projects | `Closes #N` on the first line |
 | Order | exists before the branch — its iid names it | opened before the code, on an empty branch |
+| Branch | Issue takes Task children only; Epic takes Issues | source branch is permanent — reopen, never rename |
 | Scope | split into child tasks, not a checklist | one concern; split rather than rename |
 | Merge | closed by the MR | no squash · reviewer approves · developer merges |
 
@@ -503,6 +517,23 @@ glab api --method POST "projects/<path>/uploads" --form "file=@<path-to-image>"
 Leave a full **blank line** between any label above the image (`Before:`,
 `After:`) and the `![...](...)` line, since a bare newline still renders the
 two inline in the same paragraph.
+
+**Paste the returned path exactly, relative.** `/uploads/<hash>/<file>` is what
+GitLab resolves against the project. An absolute
+`https://gitlab.com/<group>/<project>/uploads/...` is not a path GitLab serves and
+renders as a broken image; the real absolute form carries a `/-/project/<id>/`
+segment, so there is no reason to build one by hand.
+
+**Verify by asking GitLab to render it**, not with curl:
+
+```sh
+glab api "projects/<path>/merge_requests/<iid>?render_html=true"
+# -> description_html; count the <img src= entries
+```
+
+A `curl` of an upload URL proves nothing: GitLab 302s to object storage and that
+hop wants a session cookie, so a `PRIVATE-TOKEN` request ends in 403 whether the
+link is right or wrong. A 302 is not evidence the image works.
 
 ### Reply inside an existing thread
 
