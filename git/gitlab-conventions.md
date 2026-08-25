@@ -44,7 +44,7 @@ Three roles appear throughout:
 | Part | Covers |
 | --- | --- |
 | [1 Workflow](#1-workflow) | The path from a request to a merged change |
-| [2 Work items](#2-work-items) | Type · title · description · labels · milestone · status · threads |
+| [2 Work items](#2-work-items) | Type · title · description · labels · milestone · status · threads · meeting notes |
 | [3 Merge requests](#3-merge-requests) | Branch · title · description · draft state |
 | [4 Review and merge](#4-review-and-merge) | GitLab's mechanics for approval and merge |
 | [5 Project setup](#5-project-setup) | Labels, milestones and merge settings a repo needs |
@@ -57,7 +57,7 @@ The path a change takes on GitLab, and who does what.
 
 | # | Actor | Step |
 | --- | --- | --- |
-| 1 | client / developer | The need surfaces as a comment on an existing item, a chat, a document — or the developer hits a defect directly and investigates it. |
+| 1 | client / developer | The need surfaces as a comment on an existing item, a call, a chat, a document — or the developer hits a defect directly and investigates it. |
 | 2 | developer | Capture the origin: the permalink to that comment, or the finding itself when there is no thread to point at. |
 | 3 | assistant | Fetch the target project's labels, milestones and members, then propose the title, the description, and each field with a suggested value. |
 | 4 | developer | Confirm or correct the title and every selection. |
@@ -270,6 +270,38 @@ comment thread per topic. Rules for those:
 - **Never tick someone else's checkbox.** The link is the record.
 - **Resolve a thread when the question it asked is answered**, not when the
   reply is posted. An unresolved thread is an open question.
+
+### 2.8 Meeting notes
+
+A call reaches the tracker only if someone writes it down. After a call, its
+transcript, from whichever notetaker was used, is turned into notes on the items
+it touched.
+
+- **One note per item.** A call touching several topics produces one note per
+  topic, each on the item or MR that owns it, not one summary parked in one
+  place. Post it on the MR when the topic is that MR's work, otherwise on the
+  item.
+- **Record what was said, nothing else.** No diagnosis, no proposed fix, no code
+  findings, no next steps nobody agreed to. Analysis done afterwards by reading
+  the code is separate work and is posted separately, if at all. A note that
+  mixes the two leaves nobody able to tell what the team actually agreed.
+- **Attribute every line, in one form**: `Name: what they said`. Questions
+  included.
+- **The transcript's speaker label is not proof of who spoke.** People sharing a
+  room share a microphone, and the transcript credits the whole room to one
+  name. Attribute by who owns the subject, and ask when it is not clear.
+- **Shape**: an opening line
+  `**Meeting note, <YYYY-MM-DD> (<meeting>: @handles)**`, then bold section
+  headings with flat bullets under each. Sections follow the call, not a
+  template.
+- **Decisions belong on the item they affect**, including the ones that only
+  park it. That is history, the same rule as [§2.3](#23-description).
+- **A note is not a work item.** Where the call created work, file the item and
+  reply with the tracked line ([§2.7](#27-threads)). When the note covered
+  several topics, say which one was filed rather than leaving a bare
+  `Tracked at <URL>`.
+- Each note is proposed and confirmed before it is posted, like anything else
+  the assistant files ([§1](#1-workflow)).
 
 ## 3 Merge requests
 
@@ -548,6 +580,18 @@ glab api --method POST \
 Find the discussion id with
 `glab api "projects/<path>/issues/<iid>/discussions"` and match on the note id
 from the comment's permalink (`#note_<id>`).
+
+### Post a meeting note
+
+Draft each note to its own file ([§2.8](#28-meeting-notes)), then post it to the
+item or the MR:
+
+```sh
+glab api --method POST "projects/<path>/issues/<iid>/notes" --field body=@note-<iid>.md
+glab api --method POST "projects/<path>/merge_requests/<iid>/notes" --field body=@note-mr<iid>.md
+```
+
+Read it back afterwards, same as a description.
 
 ### Work items through the issues API
 
