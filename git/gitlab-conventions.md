@@ -246,10 +246,13 @@ they are per project, they do not — check which before assuming a name resolve
 
 ### 2.6 Status and assignee
 
-Status tracks reality, not intent: `todo` → `in-progress` → `review`. Move it
-when the state actually changes — a board that lags is a board nobody trusts.
-The MR merging is what closes the item ([§3.3](#33-description)); there is no
-manual `done` step.
+Status tracks reality, not intent: `planning` → `in-progress` → `review`. A new
+item is `planning`, which is what GitLab sets on creation. It has been filed,
+not started, and nothing is promised about when it starts. It moves to
+`in-progress` only when the developer says work on it is starting, and to
+`review` when its MR goes up for review. Move it when the state actually
+changes — a board that lags is a board nobody trusts. The MR merging is what
+closes the item ([§3.3](#33-description)); there is no manual `done` step.
 
 Set the assignee at creation when the owner is already known — an item filed
 from a discussion you are driving is yours. Leave it unassigned only when it
@@ -447,7 +450,7 @@ force-pushes.
 | Body | the ask as filed · what is still needed — no guessed scope | Closes #N · Why / What / How / Test / Open |
 | Label | exactly one type label, plus scoped — **values from the project, chosen by the developer** | mirror the work item |
 | Milestone | exactly one, always — **values from the project, chosen by the developer** | mirror the work item |
-| Status | `todo` → `in-progress` → `review` | `Draft:` → ready → approved → merged |
+| Status | `planning` → `in-progress` → `review` | `Draft:` → ready → approved → merged |
 | Links | full URLs across projects | `Closes #N` on the first line |
 | Order | exists before the branch — its iid names it | opened before the code, on an empty branch |
 | Branch | Issue takes Task children only; Epic takes Issues | source branch is permanent — reopen, never rename |
