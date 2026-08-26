@@ -11,3 +11,6 @@ Thumbs.db
 dist/
 build/
 node_modules/
+
+# Local Claude context (not part of the shipped repo)
+CLAUDE.md
