@@ -80,7 +80,7 @@ The path a change takes on GitLab, and who does what.
 | 6 | assistant | Open the MR against `develop`, letting GitLab create the source branch, and mark it `Draft:`. Same confirmation as step 4 for its title and fields. |
 | 7 | developer | Check the branch out locally and put the work on it — new edits, or changes lifted from a stash. |
 | 8 | assistant | Commit and push. The commits attach themselves to the MR opened in step 6. |
-| 9 | assistant | Fill in the MR description to the shape in [§3.3](#33-description), including **Test** and **Open**. |
+| 9 | assistant | Fill in the MR description to the shape in [§3.3](#33-description), including **TESTS** and **OPEN**. |
 | 10 | developer | Self-review, wait for a green pipeline, clear `Draft:`, request review. |
 | 11 | reviewer | Review and approve ([§4](#4-review-and-merge)). |
 | 12 | developer | Merge. |
@@ -371,34 +371,78 @@ feat: derive BLE device name from chip uid
 ```markdown
 Closes #<iid>
 
-## Why
+# SUMMARY
+Plain-language bullets, readable without opening the diff. What changed, why it
+matters, where it was tested.
+
+---
+
+# WHY
 The problem, in the reviewer's terms. Link the work item and any related MR.
 
-## What
-The change, grouped by concern. `feat` / `fix` subheadings when an MR carries more than one.
+---
 
-## How
-The reasoning a reviewer cannot get from the diff — why this approach, what constraint forced it.
+# WHAT
+The change, grouped by concern. Bold `feat:` / `fix:` / `docs:` labels when an MR
+carries more than one.
 
-## Test
-What was actually run, and the observed result. Drop the section for changes with nothing to observe.
+---
 
-## Open
+# HOW
+The reasoning a reviewer cannot get from the diff: why this approach, what
+constraint forced it.
+
+---
+
+# TESTS
+
+#### > TEST @ <SITE>
+What was run and what was observed, one subsection per site or tier.
+
+#### > BUILD CHECKS
+
+#### > NOT COVERED
+
+---
+
+# OPEN
 Anything unresolved or deferred. Drop the section when there is nothing.
+
+- [ ] **@person**: what is left to do about it.
 ```
+
+**Headings sit one level up from ordinary prose**, `#` for the sections above in
+capitals, `####` for subsections prefixed `> ` and also in capitals. The two
+levels then read apart at a glance in a long description, which any MR carrying
+screenshots and log extracts will be. Drop `TESTS` for changes with nothing to
+observe, and drop any subsection that would be empty.
+
+**SUMMARY is the part most people read.** Bullets, plain words, no byte values or
+symbol names unless they are the point. A reviewer deciding whether this MR
+concerns them should not have to parse WHY to find out.
+
+**A horizontal rule sits between every section**, not only around the body. An MR
+description is long — screenshots, log extracts, a table per test site — and
+without them the `#` headings alone do not separate one concern from the next
+when scrolling. Subsections are not divided: they belong to the section above
+them, and a rule between them would break that grouping.
+
+**Write it plainly.** The reasoning in WHY and HOW earns its length; the prose
+around it does not. Cut the throat-clearing, the restatement and the flourish. If
+a sentence explains what the sentence before it already said, delete it.
 
 `Closes #<iid>` on the first line so the item closes on merge — this is where
 the closing reference lives, not in the commits
 ([git-conventions §2](git-conventions.md#2-reference-trailer)). When an MR
-closes more than one item, list each on its own `Closes` line and say in **Why**
+closes more than one item, list each on its own `Closes` line and say in **WHY**
 why they land together.
 
-**Why** and **How** carry the reasoning a diff cannot: "fixed the bug" or
+**WHY** and **HOW** carry the reasoning a diff cannot: "fixed the bug" or
 "updated the config" tells a future reader nothing they did not already have
 from the diff. Say what the problem was, why this is the right approach, and
-flag any known shortcoming in **How** rather than leaving it to be found later.
+flag any known shortcoming in **HOW** rather than leaving it to be found later.
 
-**Test** carries the evidence, not the intent: "verified it works" proves
+**TESTS** carries the evidence, not the intent: "verified it works" proves
 nothing on its own. A before/after table of observed values, the log line
 that settles it, or a screenshot for anything visual is what lets a reviewer
 trust a behavioural claim without repeating the work. Say which build it was
@@ -406,9 +450,21 @@ measured on. Where testing spans more than one environment, list each tier's
 result separately rather than folding them into one line, since a reviewer
 needs to know which claim came from which.
 
-**Open** is the only record of anything found and deliberately not fixed. Once
+Name each subsection by where the test ran, `> TEST @ AC`, `> TEST @ KW`, and
+order them as the work happened, with a client or third-party confirmation last
+since it arrives after the change is done. Put Before and After screenshots
+adjacent, then the evidence that explains them, rather than bracketing the
+section with them.
+
+**OPEN** is the only record of anything found and deliberately not fixed. Once
 the MR merges it is closed and nobody reads it again, so a defect parked there
 is a defect nobody tracks — file it as its own work item and link it instead.
+
+**Where an entry is something somebody has to do, it is a checkbox naming
+them**, in the imperative, exactly as in an item's `ACTIONS`
+([§2.3](#23-description)). It is the same list in a different place and reads
+the same way, so the Mentions rule holds too: the handle goes on the person
+being asked, once, and nowhere else in the description.
 
 Mirror the work item's label and milestone onto the MR, and keep the description
 current as the MR changes. A description written against the first commit and
