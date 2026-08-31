@@ -538,6 +538,22 @@ as they are pushed.
 glab mr update <mr iid> --description "$(cat body.md)"
 ```
 
+Three ways this bites when scripting from outside the repo:
+
+- **The `:id` placeholder is expanded from the working directory's git remote**, so
+  `projects/:id/...` fails with `git: exit status 128` anywhere else. Pass the
+  numeric project id when running from a scratch directory.
+- **The API needs the content type spelled out** or GitLab answers 415:
+
+  ```sh
+  glab api --method PUT "projects/<id>/merge_requests/<iid>" \
+    --input body.json -H "Content-Type: application/json"
+  ```
+
+- **`-f "description=@file"` does not read the file.** It stores the literal string
+  `@/path/to/file` as the description and reports success. Only `--input` and
+  `--form` take a file.
+
 ### Attach an image to a description
 
 Upload the file first, then paste the returned path into `body.md` before
@@ -606,6 +622,24 @@ glab issue view <iid> --repo <group>/<project>
 glab api "projects/<id>/issues/<iid>"
 glab api "projects/<id>/issues/<iid>/discussions"
 ```
+
+A work item description is edited the same way, through the issues path:
+
+```sh
+python3 -c "import json; print(json.dumps({'description': open('body.md').read()}))" >| body.json
+glab api --method PUT "projects/<path>/issues/<iid>" \
+  --input body.json -H "Content-Type: application/json"
+```
+
+Two things bite here that do not when the body is a short `-f` string:
+
+- **`description` replaces the whole field.** Read the current one to a file
+  first, edit that, and send it back — there is no partial update, and nothing
+  warns that a section went missing.
+- **Write `body.json` with `>|`, not `>`.** Under zsh `noclobber` a rewrite of an
+  existing file aborts the whole `&&` chain, so the `glab api` call never runs
+  while the previous description reads back unchanged, which looks like a
+  silently rejected update.
 
 **Status is not an issue field.** Where a group defines custom statuses
 (`WorkItems::Statuses::Custom`), status lives on the work-item GraphQL type and the
