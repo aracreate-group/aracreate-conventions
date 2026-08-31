@@ -329,9 +329,9 @@ comment thread per topic. Rules for those:
 
 ### 2.8 Meeting notes
 
-A call reaches the tracker only if someone writes it down. After a call, its
-transcript, from whichever notetaker was used, is turned into notes on the items
-it touched.
+A call reaches the tracker only if someone writes it down. After a call, or a
+note recorded alone, its transcript, from whichever notetaker was used, is
+turned into notes on the items it touched.
 
 - **One note per item.** A call touching several topics produces one note per
   topic, each on the item or MR that owns it, not one summary parked in one
@@ -347,9 +347,14 @@ it touched.
   room share a microphone, and the transcript credits the whole room to one
   name. Attribute by who owns the subject, and ask when it is not clear.
 - **Shape**: an opening line
-  `**Meeting note, <YYYY-MM-DD> (<meeting>: @handles)**`, then bold section
+  `**<Kind> note, <YYYY-MM-DD> (<what it was>: @handles)**`, then bold section
   headings with flat bullets under each. Sections follow the call, not a
   template.
+- **`<Kind>` says what the source was.** Two values are in use: `Meeting` for a
+  call with more than one person on it, `Voice` for a solo audio memo or a
+  dictated note. Nothing else in the line changes. The `<Kind> note, <date>`
+  prefix is fixed so an item can be searched for a note it already carries —
+  the rest of the opener is not, so nothing else should be matched on.
 - **Decisions belong on the item they affect**, including the ones that only
   park it. That is history, the same rule as [§2.3](#23-description).
 - **A note is not a work item.** Where the call created work, file the item and
