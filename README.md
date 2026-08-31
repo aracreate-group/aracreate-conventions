@@ -14,8 +14,10 @@ written for it yet has no folder. Reference material that is not a convention li
 | Folder | Covers |
 | --- | --- |
 | [repo/](repo/) | Repo structure, the project scaffold in [`repo/template/`](repo/template/), copyright, file headers, naming, Makefile, motd, versioning |
-| [git/](git/) | Commit message format, plus the platform document for GitLab |
+| [git/](git/) | Commit message format, the platform document for GitLab, and templates in [`git/templates/`](git/templates/) |
 | [wiki/](wiki/) | Reference notes that are not conventions — currently the [toolchain](wiki/toolchain.md) |
+
+`scripts/` is this repo's own `motd`, not a convention domain — it is not part of the catalogue above.
 
 Read [`git/git-conventions.md`](git/git-conventions.md) whatever the repo, then the
 platform document for wherever it is hosted. Commit format is defined there once and
