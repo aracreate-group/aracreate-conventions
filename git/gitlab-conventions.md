@@ -39,6 +39,21 @@ Three roles appear throughout:
 | **Reviewer** | The peer who approves. Never the author. |
 | **Assistant** | Whatever automation drafts, files or commits on the developer's behalf. Every step it takes is proposed and confirmed, never assumed. |
 
+## Mentions
+
+`@handle` notifies. Use it where somebody is being asked for something, and at
+most once per person in any one description, comment or note. Everywhere else,
+a plain first name: `Martin:`, `Leo:`, `Ara:`.
+
+Tagging the same person in every bullet notifies them on every edit and reads as
+though each line were addressed to them. So in a work item the handles live in
+[§2.3](#23-description)'s `ACTIONS` and nowhere else; in a meeting note they live
+in the attendee line ([§2.8](#28-meeting-notes)); in a merge request they belong
+wherever somebody is being asked to look at something.
+
+**Never rewrite a handle inside quoted text.** A quote is reproduced as written,
+including the mentions its author chose.
+
 ## Contents
 
 | Part | Covers |
