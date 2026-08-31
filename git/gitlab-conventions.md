@@ -70,6 +70,7 @@ The path a change takes on GitLab, and who does what.
 | 11 | reviewer | Review and approve ([§4](#4-review-and-merge)). |
 | 12 | developer | Merge. |
 | 13 | assistant | Close the work item and reply wherever it was tracked that it is resolved. |
+| 14 | assistant | Leave the clone clean: `git switch <default> && git pull`, then delete the merged local branch. |
 
 What makes the order matter:
 
@@ -87,6 +88,11 @@ What makes the order matter:
   project's options but the developer chooses among them.
 - **The author does not approve, and the assistant does not merge.** Steps 8, 11
   and 12 are deliberately different actors.
+- **The clone goes back to the default branch when the MR closes.** A merged MR
+  leaves a local branch tracking a remote that GitLab has deleted, so the next
+  session starts on a dead branch and its first commit lands somewhere nobody is
+  watching. `git switch <default> && git pull`, then `git branch -d` the merged
+  branch, so the working copy matches what was merged.
 - **The plan leads with numbered steps, context after.** When an assistant
   drafts an implementation plan before writing code, it opens with a numbered
   **Steps** list covering the whole piece of work end to end, filing or
