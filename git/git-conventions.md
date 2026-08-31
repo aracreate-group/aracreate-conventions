@@ -133,10 +133,21 @@ one — the file still applies and no longer parses. Either keep context (`-U3`,
 git locates each hunk) or build the intended file content and write it to the
 index, and re-diff after every commit so the offsets stay valid.
 
+**Naming a path on `git commit` discards the staged hunks.** `git commit -- <path>`
+and `git commit -a` both commit that file's *working-tree* content, so a split
+staged hunk by hunk lands as one commit carrying everything under the first
+message, and the remaining patches then fail as already applied. Stage by path,
+commit with no pathspec.
+
 **Prove the split lost nothing.** Two checks: selecting *all* hunks must reproduce
 the working tree byte for byte, and the finished branch must diff identically
 against its base to a patch taken before the split started. Keep that patch until
 the last commit lands.
+
+**A verification patch is written with `>|`, not `>`.** Under zsh `noclobber` a
+plain redirect onto an existing file aborts, so the check silently compares
+against the previous run's patch and reports a match that proves nothing. This
+holds for every scratch file a check rewrites, not only patches.
 
 **`git mv` stages the rename immediately.** Both paths sit in the index from that
 moment, so the next `git add <paths>` and commit sweeps them in although they were
@@ -184,6 +195,6 @@ git status -sb         # release commit, and is it pushed?
 | Trailer | bare `#<n>` on the last line · no closing keyword · no URL · omitted when untracked |
 | Never in a message | emails · usernames · real names · tokens · `Co-Authored-By` |
 | Scope | one concern · staged by path · stands on its own |
-| Splitting | keep context or build the blob · all-hunks rebuild must match · diff the branch against a pre-split patch |
+| Splitting | keep context or build the blob · commit with no pathspec · all-hunks rebuild must match · diff the branch against a pre-split patch |
 | Publishing | explicit instruction for each act — see [§5](#5-publishing) |
 | Releases | publishing too · `semantic-release` needs `--no-ci` off CI · verify VERSION and the tag |
