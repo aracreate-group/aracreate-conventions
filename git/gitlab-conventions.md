@@ -168,49 +168,81 @@ build: update makefiles to build in fresh development environment
 
 ### 2.3 Description
 
-A work item captures **what is known when it is filed** — the ask, and what is
-still missing to act on it. Nothing more. Two shapes cover it.
+A work item captures **what is known when it is filed**: the ask, and what is
+still missing to act on it. Nothing more.
 
-**A follow-up or direct ask**:
+Four sections cover both a follow-up and a defect. Sections that do not apply
+are dropped rather than left as empty headings, so an ask filed from a comment
+is usually just `ASK` and `ACTIONS`, while a defect fills `EVIDENCE` too.
 
 ```markdown
-Follow-up from [<repo>#<iid> (comment)](<full url>) — @author:
+# ASK
 
-> <the ask, quoted as written>
+Follow-up from [<repo>#<iid> (comment)](<full url>), Author:
 
-One or two lines of what that means, if the quote does not stand alone.
+> the ask, quoted as written
 
-## Needed from @<person>
-- Logs, conditions, or the decision still outstanding.
+What that means, if the quote does not stand alone. For a defect, what happens
+and what should happen instead.
+
+---
+
+# EVIDENCE
+
+To reproduce: the steps, numbered, that someone else can follow.
+
+Build, bench, unit, conditions. Logs, screenshots, a before and after table.
+
+# DECISIONS
+
+A decision already taken in the thread, and who took it.
+
+---
+
+# ACTIONS
+
+- [ ] **@person**: the logs, conditions or decision still outstanding.
 
 Scope will be defined once the above is available.
 ```
 
-**A defect** — what the reporter had, not a diagnosis:
+**Headings match an MR's** ([§3.3](#33-description)): `#` for the sections above
+in capitals, `####` for subsections prefixed `> ` and also in capitals, and
+horizontal rules bracketing the body so `ASK` and `ACTIONS` stand clear of it. An
+item and the MR that closes it then read as one system, which matters because
+the item's `ASK` is what the MR's `WHY` gets written from.
 
-```markdown
-### Summary
-### Steps to reproduce
-### Build / environment
-### Current behaviour
-### Expected behaviour
-### Logs or screenshots
-```
-
-- Quote the ask **as written** in the follow-up shape. A paraphrase loses the
-  detail that turns out to matter, and the quote is the one part nobody can
-  reconstruct later.
+- Quote the ask **as written**, typos included. A paraphrase loses the detail
+  that turns out to matter, and the quote is the one part nobody can reconstruct
+  later.
 - Do **not** write scope, design, or acceptance criteria from reading the code at
-  filing time, in either shape. Investigation belongs in development and its
-  output belongs in the MR description — an item padded with a guessed plan
-  reads as decided when it is not, and goes stale the moment development
-  starts.
-- Where a decision has already been taken in the thread, record the decision and
-  who took it. That is history, not a plan.
-- For a defect, give what the reporter had: what was observed, on which build,
-  under what conditions — not a guessed cause. Add `confirmed` once it is
-  reproduced ([§2.4](#24-labels)).
-- Sections that would be empty are dropped, not left as headings.
+  filing time. Investigation belongs in development and its output belongs in the
+  MR description; an item padded with a guessed plan reads as decided when it is
+  not, and goes stale the moment development starts.
+- **A defect states both halves in `ASK`**: what was observed and what should
+  have happened instead, in the reporter's own terms and never a guessed cause.
+  Add `confirmed` once it is reproduced ([§2.4](#24-labels)).
+- **`EVIDENCE` leads with the steps to reproduce.** It is the most useful thing
+  a defect can carry and the thing most often left in a comment thread instead.
+  Build, conditions, logs and screenshots follow, since they are all answering
+  the same question: what did the reporter actually have.
+- **`DECISIONS` is history, not a plan.** Record a decision already taken in the
+  thread and who took it. Where none has been taken, drop the section rather
+  than fill it with an intention.
+- **`ACTIONS` is a checklist and names the person**, and is the only part of the
+  description that carries an `@handle` (see Mentions above). An item waiting on
+  nobody in particular waits forever. Never tick somebody else's box
+  ([§2.7](#27-threads)). Each box is one action, in the imperative: a question
+  becomes the act of answering it, `decide what the contract carries` rather
+  than `what the contract carries`.
+- **The item does not promise a scope.** An open `ACTIONS` box says what is
+  outstanding; it does not mean work cannot start. What the work turns out to
+  be, and everything learned on the way, is recorded in the MR's description
+  ([§3.3](#33-description)) as it happens, not predicted here. So the closing
+  line, `Scope will be defined once the above is available.`, is **not** the
+  default: it goes only on an item filed from a single comment with nothing
+  else to go on, where it states the emptiness rather than leaving it to look
+  like an oversight. An item carrying enough to start does not carry it.
 
 ### 2.4 Labels
 
