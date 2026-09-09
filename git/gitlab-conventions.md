@@ -103,6 +103,12 @@ What makes the order matter:
   project's options but the developer chooses among them.
 - **The author does not approve, and the assistant does not merge.** Steps 8, 11
   and 12 are deliberately different actors.
+- **Diagnosing is not authorisation.** Reviewing, testing or reproducing a
+  problem never carries permission to fix what it finds, and neither does the
+  fix being small or obviously correct. Report the diagnosis and the proposed
+  change, then wait. Until the developer says otherwise, everything MR-shaped
+  is read-only: no file edits, no comments, no approvals, no label, status or
+  assignee changes, no merges.
 - **The clone goes back to the default branch when the MR closes.** A merged MR
   leaves a local branch tracking a remote that GitLab has deleted, so the next
   session starts on a dead branch and its first commit lands somewhere nobody is
