@@ -333,6 +333,11 @@ comment thread per topic. Rules for those:
   different: when the MR closing the item merges, tick the boxes naming the
   developer whose work it was, since the merge is what finished them. Leave any
   the merge did not actually finish, and say which were left.
+- **A bare `#<iid>` cross-references both ways** within one project: naming an
+  item from an MR puts that MR in the item's `related_merge_requests`, and
+  naming it from another item shows on both. Same-project references need no
+  full URL; a full URL is for anything across projects
+  ([§2.3](#23-description)).
 - **Resolve a thread when the question it asked is answered**, not when the
   reply is posted. An unresolved thread is an open question.
 
@@ -590,6 +595,10 @@ Group settings can block MCP access in ways that surface as an opaque error, so
 treat `glab` as the dependable path rather than something to fall back to after
 debugging.
 
+**A single `401 Unauthorized` is not an auth failure.** Two calls in the same
+second can come back one success and one 401. Retry before treating the token
+as the problem.
+
 Draft descriptions and comments **to a file** and review them before they are
 sent ([git-conventions §5](git-conventions.md#5-publishing))
 — every recipe below reads its body from one.
@@ -723,6 +732,26 @@ Find the discussion id with
 `glab api "projects/<path>/issues/<iid>/discussions"` and match on the note id
 from the comment's permalink (`#note_<id>`).
 
+### Link two items
+
+`blocks` / `is blocked by`, rather than a sentence in a description
+([§2.1](#21-type-and-ownership)):
+
+```sh
+glab api --method POST "projects/<path>/issues/<iid>/links" \
+  -f target_project_id=<id> -f target_issue_iid=<iid> -f link_type=blocks
+```
+
+**The creating call does not confirm the link.** Its response comes back with an
+empty `iid`, so read both ends:
+
+```sh
+glab api "projects/<path>/issues/<iid>/links"
+```
+
+A `blocks` link shows as `is_blocked_by` on the other item. That is the same
+link seen from the other side, not a second one.
+
 ### Post a meeting note
 
 Draft each note to its own file ([§2.8](#28-meeting-notes)), then post it to the
@@ -787,4 +816,9 @@ indexes) carries the old name, where a docs rebuild rather than an edit is the f
 `glab mr update --description` reports success without showing what landed. Read it
 back and check the shape survived: `Closes #N` on the first line, the section
 headings, and the image count.
+
+**Check the content, not the status.** A `PUT` that reports success can still
+have landed something other than what was sent. Compare with the trailing
+whitespace stripped from both sides rather than byte for byte, since GitLab
+strips the trailing newline from a description.
 
