@@ -84,7 +84,7 @@ The path a change takes on GitLab, and who does what.
 | 10 | developer | Self-review, wait for a green pipeline, clear `Draft:`, request review. |
 | 11 | reviewer | Review and approve ([§4](#4-review-and-merge)). |
 | 12 | developer | Merge. |
-| 13 | assistant | Close the work item and reply wherever it was tracked that it is resolved. |
+| 13 | assistant | Close the work item, tick the developer's own `ACTIONS` boxes the merge finished, and reply wherever it was tracked that it is resolved. |
 | 14 | assistant | Leave the clone clean: `git switch <default> && git pull`, then delete the merged local branch. |
 
 What makes the order matter:
@@ -237,10 +237,10 @@ the item's `ASK` is what the MR's `WHY` gets written from.
   than fill it with an intention.
 - **`ACTIONS` is a checklist and names the person**, and is the only part of the
   description that carries an `@handle` (see Mentions above). An item waiting on
-  nobody in particular waits forever. Never tick somebody else's box
-  ([§2.7](#27-threads)). Each box is one action, in the imperative: a question
-  becomes the act of answering it, `decide what the contract carries` rather
-  than `what the contract carries`.
+  nobody in particular waits forever. Never tick somebody else's box; the
+  developer's own are ticked when the MR merges ([§2.7](#27-threads)). Each box
+  is one action, in the imperative: a question becomes the act of answering it,
+  `decide what the contract carries` rather than `what the contract carries`.
 - **The item does not promise a scope.** An open `ACTIONS` box says what is
   outstanding; it does not mean work cannot start. What the work turns out to
   be, and everything learned on the way, is recorded in the MR's description
@@ -329,7 +329,10 @@ comment thread per topic. Rules for those:
 - **When a thread turns into work**, open a work item in the owning repo and
   reply in that thread with a single line: `Tracked at <URL>`. No scope recap —
   the item carries the detail.
-- **Never tick someone else's checkbox.** The link is the record.
+- **Never tick someone else's checkbox.** The link is the record. Your own is
+  different: when the MR closing the item merges, tick the boxes naming the
+  developer whose work it was, since the merge is what finished them. Leave any
+  the merge did not actually finish, and say which were left.
 - **Resolve a thread when the question it asked is answered**, not when the
   reply is posted. An unresolved thread is an open question.
 
