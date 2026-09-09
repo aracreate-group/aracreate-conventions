@@ -101,6 +101,12 @@ update the makefiles for a fresh checkout    ->  update makefiles for fresh chec
 This is a summary-line rule, not a prose rule. Commit bodies are written as
 normal sentences.
 
+**Describe the substance, not the mechanics.** A commit that brings files into
+a repo is about what those files are and do, not about the paths moving:
+`migrate file organiser and workspace utilities`, not `rename scripts to apps`.
+The mechanical framing is accurate and tells the next reader nothing, and it
+hides a change of behaviour behind what looks like tidying.
+
 **Never name people or credentials.** No emails, usernames, real names, tokens or
 account IDs in a commit message. Keep them generic; the detail belongs in the
 file. **No `Co-Authored-By` trailers** — araCreate repos carry single authorship.
