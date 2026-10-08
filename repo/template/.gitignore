@@ -11,3 +11,6 @@ Thumbs.db
 dist/
 build/
 node_modules/
+
+# Working files
+.tmp/

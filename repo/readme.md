@@ -9,6 +9,7 @@ of everything below lives in [`template/`](template/).
 | [2 Structure](#2-structure) | [`src/` by project type](#21-src-by-project-type) · [Third-party code](#22-third-party-code) · [Multi-service repos](#23-multi-service-repos) |
 | [3 Files](#3-files) | [Copyright](#31-copyright-and-ownership) · [File headers](#32-file-headers) · [Naming](#33-naming-conventions) |
 | [4 Build](#4-build) | [Makefile](#41-makefile) · [motd](#42-motd) · [Versioning](#43-versioning) |
+| [5 Logs](#5-logs) | Daily logs · session files · when a log is written |
 
 Git and code-hosting conventions are not here — they are in [`git/`](../git/).
 
@@ -53,8 +54,12 @@ project-name/
 │   └── readme.md
 ├── releases/         # Shippable outputs — binaries, firmware, fab files
 │   └── readme.md
-├── logs/             # Project-log media — photos, videos, notes
-│   └── readme.md
+├── logs/             # Dated log per day of change, indexed in logs.md
+│   ├── logs.md
+│   └── log-template.md
+├── wip/              # Session files read before the work is done, never committed
+│   ├── readme.md
+│   └── todo.md
 ├── .archives/        # Archived approaches trialled but not shipped
 │   └── readme.md
 ├── scripts/          # Helper scripts + motd banner
@@ -69,12 +74,13 @@ project-name/
 └── README.md
 ```
 
-Create **all** top-level folders when scaffolding a new project, even the ones a project does not use yet. Each holds a lowercase `readme.md` describing its purpose — this keeps the empty folder tracked by git and documents its role, so the structure is uniform across every repo. Use the `readme.md` instead of a `.gitkeep`. See [Naming conventions](#33-naming-conventions) for README casing.
+Create **all** top-level folders when scaffolding a new project, even the ones a project does not use yet. Each holds a lowercase `readme.md` describing its purpose — this keeps the empty folder tracked by git and documents its role, so the structure is uniform across every repo. Use the `readme.md` instead of a `.gitkeep`; `logs/` holds its index, `logs.md`, in that role. See [Naming conventions](#33-naming-conventions) for README casing.
 
 Every project keeps the full set even when a folder starts empty:
 
 - **`releases/`** — shippable release files: compiled binaries, firmware images, or PCB fabrication outputs (Gerbers, BOM, assembly). Committed and tagged, not gitignored build cruft.
-- **`logs/`** — project-log media: dated photos, videos, and notes tracking build progress. Common on hardware and physical-build projects.
+- **`logs/`** — the project log, laid out in [5 Logs](#5-logs).
+- **`wip/`**: a session's handoff, plans and drafts, and the local `todo.md`, kept untracked so `git status` shows them; only its `readme.md` is committed ([5 Logs](#5-logs)).
 - **`.archives/`** — an archive of approaches trialled during development but not shipped. Document what was tried and why it was dropped, so the knowledge is kept without cluttering `src/`.
 
 The conventions repo itself is the one exception: it ships documentation rather than a
@@ -252,3 +258,47 @@ The `Description` is the project name (no `This file contains …` text, and no 
 ### 4.3 Versioning
 
 A single `VERSION` file at the repo root holds the current version (e.g. `0.0.1`) and is the single source of truth. Do not repeat the version in file headers, the `Makefile`, or `scripts/motd`. semantic-release bumps `VERSION` and generates `CHANGELOG.md` from the first release onward, reading the commit format defined in [git-conventions](../git/git-conventions.md).
+
+## 5 Logs
+
+Every repo keeps a log, whether or not it was scaffolded from the template: a
+`logs/` folder at the root, written for people and for Claude sessions alike.
+It is the record a session reads to learn what happened in a repo, and the
+source that project knowledge is distilled from, so session transcripts need no
+separate mining.
+
+- **One file per day of change**, `logs/log-YYYY-MM-DD.md`, opening with
+  frontmatter: `title`, `aliases`, `type: log`, `updated`, `tags`. A day with
+  several efforts carries them as sections of the same file.
+- **Its shape**: a line with the days the work covers and the day it was
+  committed, a paragraph on what was asked and why, then Findings, Findings
+  that were wrong, Changed, Decided, Distilled into and, last, Still open,
+  dropping the ones that are empty. A data intake opens with Source, Coverage,
+  Not in it, Known defects and Redaction. A day with several efforts gives
+  each its own section, with one Still open at the end. The log template,
+  `logs/log-template.md` in the [template](template/logs/log-template.md), is
+  the copy to start from.
+- **What it leaves out**: Changed lists changes by area, one line each; the log
+  does not repeat commit messages, diffs or file contents, and carries no
+  commit hashes, which change before a push. It links rather than pastes, and
+  holds no transcripts.
+- **Its date is the day of the work**, and its opening line gives the day it
+  was committed. Work that ran over several days without a commit, and cannot
+  be split cleanly by day, goes into one log named for the day it is committed.
+- **Written once per push, not per commit.** Before a push, the log covering
+  the pushed commits is committed with them; that check belongs in a pre-push
+  hook rather than in every commit. A day pushed more than once gains a section
+  per push in the same file. What is already pushed is not reworded; a later
+  correction goes into a new day's log.
+- **Work across repos** writes that day's log in each repo it changed.
+- **`logs/logs.md`** explains the folder and indexes every log, one row each.
+
+`logs/` holds committed records only. A session's files for reading before the
+work is finished, a handoff, a plan, a draft, and the local `todo.md`, live in
+`wip/` at the root, named session first: `<session>-handoff.md`. They are never
+committed, and `wip/` is not ignored: `git status` lists them as untracked, so
+unfinished work stays in view where a scratch folder would hide it. Once what a
+file holds is in the logs, the notes or the data it belongs to, it is deleted or
+moved to `.tmp/wip/`, which is gitignored. Trial code and intermediate output
+go in `.tmp/` from the start. `wip/` carries a committed `readme.md`, so the
+folder exists in every clone; nothing else in it is committed.
