@@ -43,7 +43,7 @@ Three roles appear throughout:
 
 `@handle` notifies. Use it where somebody is being asked for something, and at
 most once per person in any one description, comment or note. Everywhere else,
-a plain first name: `Martin:`, `Leo:`, `Ara:`.
+a plain first name: `Alex:`, `Sam:`, `Kim:`.
 
 Tagging the same person in every bullet notifies them on every edit and reads as
 though each line were addressed to them. So in a work item the handles live in
@@ -139,7 +139,13 @@ and let one MR close both, with a `Closes` line each
 
 Break a large issue into child tasks rather than a checklist in the description,
 so each piece carries its own assignee, milestone and MR. A checklist item
-cannot be scheduled, assigned or merged; a task can.
+cannot be scheduled, assigned or merged; a task can. A task can also share one.
+Where the children are steps of a single change rather than independent pieces —
+each one leaving the system in a state the next step repairs — open one MR from
+the parent, `Closes` the parent and every child, and say in its `WHY` why they
+land together ([§3.3](#33-description)). One commit per task keeps each
+reviewable and revertible on its own, which is what splitting them across merge
+requests was for.
 
 File the item in the repo that owns the **code**, not the repo where it was
 noticed. Bench-tooling work goes to the tooling repo even when it surfaced in a
@@ -163,8 +169,10 @@ build: update makefiles to build in fresh development environment
 ```
 
 - No articles ([git-conventions §3](git-conventions.md#3-wording)).
-- Prefix with `[wip]` when the item is an open collection still being filled,
-  rather than a defined piece of work.
+- Prefix with `[tbd]` where the item is not yet settled: an open collection
+  still being filled, or a finding whose cause, scope or fix direction is
+  provisional. It pairs with the `TBD` status, and both come off together once
+  the work is defined.
 - Do not encode the type in the title (`Discussion: …`) — that is the
   `discussion` label's job ([§2.4](#24-labels)).
 - Keep it a summary, not a sentence. If the title needs a comma to stay
@@ -241,6 +249,12 @@ the item's `ASK` is what the MR's `WHY` gets written from.
   developer's own are ticked when the MR merges ([§2.7](#27-threads)). Each box
   is one action, in the imperative: a question becomes the act of answering it,
   `decide what the contract carries` rather than `what the contract carries`.
+- **`ACTIONS` is only what was missing when the item was filed.** Work
+  discovered while the change is being made goes in the MR's `OPEN`
+  ([§3.3](#33-description)), never back onto the item. The item closes when the
+  MR merges and takes its boxes with it, so a follow-up parked there is lost at
+  the moment somebody should be acting on it. `OPEN` is worked through at
+  close: each entry is filed as its own item and the section cleared.
 - **The item does not promise a scope.** An open `ACTIONS` box says what is
   outstanding; it does not mean work cannot start. What the work turns out to
   be, and everything learned on the way, is recorded in the MR's description
@@ -312,6 +326,9 @@ not started, and nothing is promised about when it starts. It moves to
 `review` when its MR goes up for review. Move it when the state actually
 changes — a board that lags is a board nobody trusts. The MR merging is what
 closes the item ([§3.3](#33-description)); there is no manual `done` step.
+Setting a `done`-category status *is* a close: GitLab closes the item on
+entering one, so it is not a way to mark work finished ahead of the merge, and
+doing it early turns the MR's `Closes` line into a no-op.
 
 Set the assignee at creation when the owner is already known — an item filed
 from a discussion you are driving is yours. Leave it unassigned only when it
@@ -337,7 +354,11 @@ comment thread per topic. Rules for those:
   item from an MR puts that MR in the item's `related_merge_requests`, and
   naming it from another item shows on both. Same-project references need no
   full URL; a full URL is for anything across projects
-  ([§2.3](#23-description)).
+  ([§2.3](#23-description)). A bare reference in an item belonging to another
+  project resolves **in that project**, so it silently points at whatever
+  happens to carry the number. The cross-reference it writes on the target
+  cannot be retracted: editing the source stops the link but leaves the note.
+  Across projects, a full URL, every time.
 - **Resolve a thread when the question it asked is answered**, not when the
   reply is posted. An unresolved thread is an open question.
 
@@ -501,7 +522,7 @@ measured on. Where testing spans more than one environment, list each tier's
 result separately rather than folding them into one line, since a reviewer
 needs to know which claim came from which.
 
-Name each subsection by where the test ran, `> TEST @ AC`, `> TEST @ KW`, and
+Name each subsection by where the test ran, `> TEST @ AC`, `> TEST @ ABC`, and
 order them as the work happened, with a client or third-party confirmation last
 since it arrives after the change is done. Put Before and After screenshots
 adjacent, then the evidence that explains them, rather than bracketing the
@@ -807,6 +828,12 @@ redirects keep them working, so nothing fails loudly:
 glab api "groups/<group>/search?scope=issues&search=<old-name>"
 glab api "groups/<group>/search?scope=merge_requests&search=<old-name>"
 ```
+
+**URL-encode the search term.** A raw space reaches the query string and GitLab
+answers `HTTP 400`. `glab` prints that on stderr and nothing on stdout, so a
+caller parsing the output sees an empty result rather than a failure, and
+concludes that nothing matched. Encode spaces as `%20`, and check that a search
+returned something parseable before treating "no results" as an answer.
 
 Search sibling working copies too: committed generated output (Sphinx HTML, search
 indexes) carries the old name, where a docs rebuild rather than an edit is the fix.
