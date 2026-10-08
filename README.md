@@ -15,6 +15,7 @@ written for it yet has no folder.
 | [repo/](repo/) | Repo structure, the project scaffold in [`repo/template/`](repo/template/), copyright, file headers, naming, Makefile, motd, versioning |
 | [git/](git/) | Commit message format, the platform document for GitLab, and templates in [`git/templates/`](git/templates/) |
 | [drive/](drive/) | Google shared drives: naming, links and code in every drive, client layout in a projects drive, person folders in a team drive |
+| [claude/](claude/) | Running a Claude Code session: ending it, replies, questions, asking before acting, files, evidence, shell |
 
 Read [`git/git-conventions.md`](git/git-conventions.md) whatever the repo, then the
 platform document for wherever it is hosted. Commit format is defined there once and
