@@ -17,6 +17,8 @@ written for it yet has no folder.
 | [drive/](drive/) | Google shared drives: naming, links and code in every drive, client layout in a projects drive, person folders in a team drive |
 | [claude/](claude/) | Running a Claude Code session: ending it, replies, questions, asking before acting, files, evidence, shell |
 
+`logs/` is this repo's own log, kept as [repo §5](repo/readme.md#5-logs) asks of every repo, not a convention domain.
+
 Read [`git/git-conventions.md`](git/git-conventions.md) whatever the repo, then the
 platform document for wherever it is hosted. Commit format is defined there once and
 nowhere else, because semantic-release parses it to decide version bumps and write
