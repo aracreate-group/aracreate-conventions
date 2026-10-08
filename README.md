@@ -15,6 +15,7 @@ written for it yet has no folder. Reference material that is not a convention li
 | --- | --- |
 | [repo/](repo/) | Repo structure, the project scaffold in [`repo/template/`](repo/template/), copyright, file headers, naming, Makefile, motd, versioning |
 | [git/](git/) | Commit message format, the platform document for GitLab, and templates in [`git/templates/`](git/templates/) |
+| [drive/](drive/) | Google shared drives: naming, links and code in every drive, client layout in a projects drive, person folders in a team drive |
 | [wiki/](wiki/) | Reference notes that are not conventions — currently the [toolchain](wiki/toolchain.md) |
 
 `scripts/` is this repo's own `motd`, not a convention domain — it is not part of the catalogue above.
