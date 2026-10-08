@@ -179,6 +179,10 @@ instruction, however strongly it implies one is coming:
 Prepare the work, draft the message **to a file** and show it, say what is ready,
 and wait.
 
+A push carries its log: the day's `logs/log-YYYY-MM-DD.md` covering the pushed
+commits is committed before the push, once per push rather than with every
+commit ([repo §5](../repo/readme.md#5-logs)).
+
 Cutting a release is publishing too: it commits `VERSION` and `CHANGELOG.md`,
 tags, and pushes both. **`semantic-release` run outside CI does nothing, loudly** —
 with no CI environment detected it falls back to dry-run while still printing
@@ -202,5 +206,5 @@ git status -sb         # release commit, and is it pushed?
 | Never in a message | emails · usernames · real names · tokens · `Co-Authored-By` |
 | Scope | one concern · staged by path · stands on its own |
 | Splitting | keep context or build the blob · commit with no pathspec · all-hunks rebuild must match · diff the branch against a pre-split patch |
-| Publishing | explicit instruction for each act — see [§5](#5-publishing) |
+| Publishing | explicit instruction for each act · the day's log committed before a push — see [§5](#5-publishing) |
 | Releases | publishing too · `semantic-release` needs `--no-ci` off CI · verify VERSION and the tag |
