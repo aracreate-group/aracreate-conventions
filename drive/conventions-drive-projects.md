@@ -113,9 +113,9 @@ half. When a second arrives, each gets its own folder with its own
 version and a year are all laid out this way:
 
     <code>-<client>-prj/
-      <code>-<project>/    input/  output/  pm/
-      <code>-v1-<name>/    input/  output/  pm/
-      <code>-2026/         input/  output/  pm/
+      <code>-<project>-prj/    input/  output/  pm/
+      <code>-v1-<name>-prj/    input/  output/  pm/
+      <code>-2026-prj/         input/  output/  pm/
 
 What decides whether `-biz/` gets the same folders is how the work is agreed:
 
@@ -130,12 +130,15 @@ Input that several versions share stays in the project's own `input/`. A
 version gets its own folder only for work we did on it, and holds only what is
 its own.
 
-A project, version or year folder carries the client code as a prefix,
-`abc-website/`, `abc-v1-cube/`, `abc-2025/`, so a search for the code finds it.
-A folder marked to sort first keeps its dash in front, `-abc-curriculum/`.
-Projects sit one level deep: a subproject of a project is flattened beside it
-as `<code>-<sub>-<project>/`, such as `abc-launch-marketing/`. Every other folder
-inside a half is param-case without the code.
+A project, version or year folder carries the client code as a prefix, so a
+search for the code finds it. In a `-prj` half it also ends in `-prj`, like the
+half itself, so a shortcut to it in a person's `projects/` shows that it opens
+shared work: `abc-website-prj/`, `abc-v1-falcon-prj/`, `abc-2025-prj/`. Its
+counterpart in a `-biz` half carries the prefix only, `abc-website/`. A folder
+marked to sort first keeps its dash in front, `-abc-curriculum-prj/`. Projects
+sit one level deep: a subproject of a project is flattened beside it as
+`<code>-<sub>-<project>-prj/`, such as `abc-launch-marketing-prj/`. Every other
+folder inside a half is param-case without the code.
 
 Work with a client always starts with a first project, and the NDA and
 framework agreement are signed for it. They stay in that project's folders,
@@ -232,7 +235,10 @@ snapshots keep their folders as they are ([§10](#10-code)).
 ## 8 Sharing
 
 Only `-prj/` and `-biz-ext/` are shared: with team members, and with the client
-when they have a Google account. The wrapper and `-biz/` stay with the company.
+when they have a Google account. A client with no `-prj/` half, most often a
+lead, shares its `-biz/` half with the team members working on it, and a
+venture shares its `-biz/` half with the team that runs it. The wrapper stays
+with the company.
 
 ## 9 Media
 
@@ -242,8 +248,12 @@ a shortcut in `output/` pointing to the media drive.
 
 ## 10 Code
 
-A client's code copy goes in `output/sw/`, or the department folder it belongs
-to, in the form [conventions-drive §3](conventions-drive.md#3-code) sets.
+A client's code copies go in `-repos/` inside the `output/` of the half or
+project they belong to, whatever the department, in the form
+[conventions-drive §3](conventions-drive.md#3-code) sets: one
+`<repo>-<date>.bundle` per repository, the date its last commit's, with its Git
+LFS objects as `<repo>-<date>-lfs.tar` beside it. The leading `-` sorts the
+folder to the top of `output/`.
 
 ## 11 Working area
 
