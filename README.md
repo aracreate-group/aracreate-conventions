@@ -17,6 +17,7 @@ written for it yet has no folder.
 | [drive/](drive/) | Google shared drives: naming, links and code in every drive, client layout in a projects drive, person folders in a team drive |
 | [claude/](claude/) | Running a Claude Code session: ending it, replies, questions, asking before acting, files, evidence, shell |
 | [server/](server/) | Servers in the cloud and on site: naming, network, OS, access, apps, motd, checks and alerts, backups, changes; a template servers/ folder |
+| [cloudflare/](cloudflare/) | Cloudflare: the account, domain tiers and groups, access, DNS and tokens; static sites on Pages, from creating a project to its checks |
 
 `logs/` is this repo's own log, kept as [repo §5](repo/readme.md#5-logs) asks of every repo, not a convention domain.
 
