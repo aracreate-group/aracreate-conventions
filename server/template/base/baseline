@@ -1,0 +1,295 @@
+#!/usr/bin/env bash
+# SPDX-License-Identifier: LicenseRef-Proprietary
+# Copyright (C) 2026, araCreate Group
+# Author: Aravinth Panch <ara@aracreate.group>
+# Description: This file contains the baseline every server is built to, run
+#              as root with the server's folder as its argument; settings come
+#              from servers.env beside base/, then the server's server.env
+
+set -euo pipefail
+
+dir="${1:?usage: baseline <server folder>}"
+lib="$(cd "$(dirname "$0")" && pwd)"
+# shellcheck source=/dev/null
+. "$lib/../servers.env"
+# shellcheck source=/dev/null
+. "$dir/server.env"
+: "${CODE:?no CODE in servers.env}" "${ADMINS:?no ADMINS in servers.env}" \
+  "${NAME:=$CODE}" "${PRIVATE_RANGE:=10.20.0.0/16}" "${TUNNEL_RANGE:=10.21.0.0/24}"
+: "${SWAP_SIZE:=2G}" "${SSH_PORT:=22}" "${SSH_USERS:=$ADMINS}" \
+  "${AGENT_FORWARDING:=no}" "${DOCKER:=no}" "${SUDO_NOPASSWD:=no}" \
+  "${SSH_FROM:=$PRIVATE_RANGE $TUNNEL_RANGE}" "${EXTRA_SSH_FROM:=}" \
+  "${ALLOW_UDP:=}" "${ALLOW_TCP_PRIVATE:=}" "${PLATFORM:=hetzner}" \
+  "${SECRETS:=slack smtp}"
+export CODE NAME PRIVATE_RANGE TUNNEL_RANGE
+opt=/opt/$CODE
+
+step() { printf '\n==> %s\n' "$*"; }
+export DEBIAN_FRONTEND=noninteractive
+is_admin() { case " $ADMINS " in *" $1 "*) return 0 ;; esac; return 1; }
+
+# install_marked <source> <target> <mode>: installs a file with @CODE@ and
+# @NAME@ filled in, so the installed copy needs no settings to find its paths
+install_marked() {
+  sed -e "s|@CODE@|$CODE|g" -e "s|@NAME@|$NAME|g" "$1" > "$2.new"
+  chmod "$3" "$2.new"
+  mv "$2.new" "$2"
+}
+
+# Everything the repo writes on a server lives under /opt/<code>: lib (this
+# copy of the repo), bin, etc, secrets, state, apps, jobs, and system, links
+# to the files the system reads in place
+step "Settings"
+install -d -m 755 "$opt" "$opt/bin" "$opt/etc" "$opt/etc/checks.d" \
+  "$opt/secrets" "$opt/state" "$opt/state/checks" "$opt/apps" "$opt/system"
+install -m 644 "$lib/../servers.env" "$opt/etc/servers.env"
+install -m 644 "$dir/server.env" "$opt/etc/server.env"
+[ -f "$dir/banner" ] && install -m 644 "$dir/banner" "$opt/etc/banner"
+if [ -d "$dir/checks.d" ]; then
+  install -m 755 "$dir"/checks.d/* "$opt/etc/checks.d/"
+fi
+
+step "Platform $PLATFORM"
+[ -x "$lib/platform/$PLATFORM" ] || { echo "no platform script $PLATFORM"; exit 1; }
+"$lib/platform/$PLATFORM" "$dir"
+
+step "Hostname"
+name=$(basename "$dir")
+[ "$(hostname)" = "$name" ] || hostnamectl set-hostname "$name"
+sed -i "s/^127\.0\.1\.1\s.*/127.0.1.1 $name/" /etc/hosts
+grep -q '^127\.0\.1\.1\s' /etc/hosts || echo "127.0.1.1 $name" >> /etc/hosts
+
+step "Time and journal"
+timedatectl set-timezone UTC
+install -d /etc/systemd/journald.conf.d
+printf '[Journal]\nSystemMaxUse=500M\n' > "/etc/systemd/journald.conf.d/90-$CODE.conf"
+systemctl restart systemd-journald
+
+step "Swap"
+if [ "$SWAP_SIZE" != 0 ]; then
+  if [ ! -f /swapfile ]; then
+    fallocate -l "$SWAP_SIZE" /swapfile
+    chmod 600 /swapfile
+    mkswap /swapfile >/dev/null
+  fi
+  swapon --show=NAME --noheadings | grep -qx /swapfile || swapon /swapfile
+  grep -q '^/swapfile ' /etc/fstab || echo '/swapfile none swap sw 0 0' >> /etc/fstab
+  echo 'vm.swappiness=10' > "/etc/sysctl.d/90-$CODE-swap.conf"
+  sysctl -q -p "/etc/sysctl.d/90-$CODE-swap.conf"
+fi
+
+step "Packages"
+purge=(btrfs-progs xfsprogs mdadm lvm2 cryptsetup cryptsetup-initramfs
+       os-prober reportbug aptitude tasksel task-english inetutils-telnet
+       at locales-all)
+present=()
+for p in "${purge[@]}"; do dpkg -s "$p" >/dev/null 2>&1 && present+=("$p"); done
+if [ ${#present[@]} -gt 0 ]; then apt-get purge -y -q "${present[@]}"; fi
+apt-get update -q
+apt-get full-upgrade -y -q -o Dpkg::Options::=--force-confold
+apt-get install -y -q unattended-upgrades nftables curl ca-certificates \
+  openssl python3 rsync
+apt-get autoremove -y -q --purge
+
+step "Unattended upgrades"
+cat > /etc/apt/apt.conf.d/20auto-upgrades <<'EOF'
+APT::Periodic::Update-Package-Lists "1";
+APT::Periodic::Unattended-Upgrade "1";
+EOF
+
+step "Users"
+for u in $SSH_USERS; do
+  id "$u" >/dev/null 2>&1 || useradd -m -s /bin/bash "$u"
+  install -d -o "$u" -g "$u" -m 700 "/home/$u/.ssh"
+  ak="/home/$u/.ssh/authorized_keys"
+  touch "$ak" && chown "$u:$u" "$ak" && chmod 600 "$ak"
+  grep -vE '^\s*(#|$)' "$lib/authorized-keys" | while read -r key; do
+    grep -qxF "$key" "$ak" || echo "$key" >> "$ak"
+  done
+done
+for a in $ADMINS; do usermod -aG sudo "$a"; done
+
+step "SSH"
+for u in $SSH_USERS; do
+  [ -s "/home/$u/.ssh/authorized_keys" ] || \
+    { echo "$u has no authorized key, stopping before SSH is locked down"; exit 1; }
+done
+cat > "/etc/ssh/sshd_config.d/10-$CODE.conf" <<EOF
+Port $SSH_PORT
+PermitRootLogin no
+PasswordAuthentication no
+KbdInteractiveAuthentication no
+X11Forwarding no
+MaxAuthTries 3
+AllowUsers $SSH_USERS
+AllowAgentForwarding $AGENT_FORWARDING
+EOF
+sshd -t
+systemctl reload ssh
+
+step "Admin sudo"
+for a in $ADMINS; do
+  f="/etc/sudoers.d/90-$CODE-$a"
+  if [ "$SUDO_NOPASSWD" = yes ]; then
+    echo "$a ALL=(ALL) NOPASSWD:ALL" > "$f"
+    chmod 440 "$f"
+    visudo -cqf "$f"
+  elif [ "$(passwd -S "$a" | awk '{print $2}')" = P ]; then
+    rm -f "$f"
+  else
+    echo "$a has no password: keeping NOPASSWD so sudo is not lost"
+  fi
+done
+# root's password is for the console only: sshd refuses root, and su is
+# limited to group root, which no login is in
+sed -i 's/^#\s*\(auth\s\+required\s\+pam_wheel\.so\)$/\1/' /etc/pam.d/su
+
+# After the admins' sudo is in place, so a run stopped halfway keeps a way in
+step "Service users: no sudo, no other groups, no password"
+for u in $SSH_USERS; do
+  is_admin "$u" && continue
+  usermod -G "" "$u"
+  for f in /etc/sudoers.d/*; do
+    if grep -q "^$u " "$f"; then rm -f "$f"; fi
+  done
+  passwd -q -l "$u"
+done
+
+step "Firewall"
+csv() { echo "$*" | xargs | sed 's/ /, /g'; }
+cat > /etc/nftables.conf <<'EOF'
+#!/usr/sbin/nft -f
+include "/etc/nftables.d/*.nft"
+EOF
+install -d /etc/nftables.d
+{
+  echo "table inet $CODE"
+  echo "delete table inet $CODE"
+  echo "table inet $CODE {"
+  echo '  chain input {'
+  echo '    type filter hook input priority filter; policy drop;'
+  echo '    iif lo accept'
+  echo '    ct state established,related accept'
+  echo '    ct state invalid drop'
+  echo '    meta l4proto { icmp, ipv6-icmp } accept'
+  echo "    ip saddr { $(csv $SSH_FROM $EXTRA_SSH_FROM) } tcp dport $SSH_PORT accept"
+  if [ -n "$ALLOW_TCP_PRIVATE" ]; then
+    echo "    ip saddr { $(csv $SSH_FROM) } tcp dport { $(csv $ALLOW_TCP_PRIVATE) } accept"
+  fi
+  if [ -n "$ALLOW_UDP" ]; then
+    echo "    udp dport { $(csv $ALLOW_UDP) } accept"
+  fi
+  echo '  }'
+  echo '}'
+} > "/etc/nftables.d/00-$CODE.nft"
+nft -c -f /etc/nftables.conf
+nft -f /etc/nftables.conf
+systemctl enable -q nftables
+
+if [ -n "${TUNNEL_ADDRESS:-}" ]; then
+  step "Tunnel to the vpn server as $TUNNEL_ADDRESS"
+  "$lib/tunnel" "$dir"
+fi
+
+if [ "$DOCKER" = yes ]; then
+  step "Docker"
+  if ! command -v docker >/dev/null; then
+    install -m 755 -d /etc/apt/keyrings
+    curl -fsSL https://download.docker.com/linux/debian/gpg -o /etc/apt/keyrings/docker.asc
+    echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc]" \
+      "https://download.docker.com/linux/debian $(. /etc/os-release && echo "$VERSION_CODENAME") stable" \
+      > /etc/apt/sources.list.d/docker.list
+    apt-get update -q
+    apt-get install -y -q docker-ce docker-ce-cli containerd.io docker-compose-plugin
+  fi
+  want='{"log-driver": "json-file", "log-opts": {"max-size": "10m", "max-file": "5"}}'
+  if [ "$(cat /etc/docker/daemon.json 2>/dev/null)" != "$want" ]; then
+    echo "$want" > /etc/docker/daemon.json
+    systemctl restart docker
+  fi
+  for a in $ADMINS; do usermod -aG docker "$a"; done
+fi
+
+# The commands in /opt/<code>/bin, linked into /usr/local/bin so they are on PATH
+link_bin() {
+  for b in "$opt"/bin/*; do
+    if [ -e "$b" ]; then ln -sfn "$b" "/usr/local/bin/$(basename "$b")"; fi
+  done
+}
+
+# Each name in SECRETS is a file /opt/<code>/secrets/<name>.env, root only,
+# or readable by a group when written <name>:<group>; values are set with
+# make secret, never by the repo
+step "Secrets"
+install_marked "$lib/set-secret" "$opt/bin/$CODE-set-secret" 755
+for s in $SECRETS; do
+  sname=${s%%:*} group=root mode=600
+  if [ "$s" != "$sname" ]; then group=${s#*:} mode=640; fi
+  f=$opt/secrets/$sname.env
+  [ -f "$f" ] || install -m 600 /dev/null "$f"
+  chown "root:$group" "$f"
+  chmod "$mode" "$f"
+done
+
+step "Alerts and checks"
+install_marked "$lib/notify" "$opt/bin/$CODE-notify" 755
+install_marked "$lib/checks/check" "$opt/bin/$CODE-check" 755
+link_bin
+install_marked "$lib/checks/check.service" "/etc/systemd/system/$CODE-check.service" 644
+install_marked "$lib/checks/check.timer" "/etc/systemd/system/$CODE-check.timer" 644
+systemctl daemon-reload
+systemctl enable -q --now "$CODE-check.timer"
+
+if [ -n "${STATE_COPY_TO:-}" ]; then
+  step "Nightly state copy to $STATE_COPY_TO"
+  install_marked "$lib/state-copy" "$opt/bin/$CODE-state-copy" 755
+  link_bin
+  cat > "/etc/systemd/system/$CODE-state-copy.service" <<EOF
+[Unit]
+Description=Copy the $NAME settings and state off the server
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=$opt/bin/$CODE-state-copy
+EOF
+  cat > "/etc/systemd/system/$CODE-state-copy.timer" <<EOF
+[Unit]
+Description=Copy the $NAME settings and state off the server nightly
+
+[Timer]
+OnCalendar=*-*-* 02:00:00 UTC
+Persistent=true
+
+[Install]
+WantedBy=timers.target
+EOF
+  systemctl daemon-reload
+  systemctl enable -q --now "$CODE-state-copy.timer"
+fi
+
+step "motd"
+: > /etc/motd
+[ -f /etc/update-motd.d/10-uname ] && chmod -x /etc/update-motd.d/10-uname
+install_marked "$lib/motd/00-banner" "/etc/update-motd.d/00-$CODE-banner" 755
+install_marked "$lib/motd/10-status" "/etc/update-motd.d/10-$CODE-status" 755
+
+if [ -x "$dir/role" ]; then
+  step "Role"
+  "$dir/role" "$dir"
+fi
+
+step "View: /opt/<code>/system links the files the system reads in place"
+link_bin
+find "$opt/system" -type l -delete
+for f in "/etc/ssh/sshd_config.d/10-$CODE.conf" /etc/sudoers.d/90-"$CODE"-* \
+         /etc/nftables.conf /etc/nftables.d/*.nft /etc/systemd/system/"$CODE"-* \
+         /etc/update-motd.d/*-"$CODE"-* /etc/systemd/journald.conf.d/*"$CODE"* \
+         /etc/sysctl.d/*"$CODE"* /etc/apt/apt.conf.d/20auto-upgrades \
+         /etc/apt/apt.conf.d/*"$CODE"* /etc/docker/daemon.json \
+         /etc/wireguard/wg0.conf; do
+  if [ -e "$f" ]; then ln -sfn "$f" "$opt/system/$(basename "$f")"; fi
+done
+
+step "Done"

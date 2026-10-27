@@ -1,0 +1,54 @@
+#!/usr/bin/env bash
+# SPDX-License-Identifier: LicenseRef-Proprietary
+# Copyright (C) 2026, araCreate Group
+# Author: Aravinth Panch <ara@aracreate.group>
+# Description: This file contains the tunnel for an on-site server: a
+#              WireGuard peer of the vpn server, so it is reached like every
+#              other server and reaches the private network; its key is made
+#              once and stays in /opt/<code>/secrets
+
+set -euo pipefail
+
+dir="${1:?usage: tunnel <server folder>}"
+# shellcheck source=/dev/null
+. "$dir/server.env"
+: "${CODE:?run by the baseline}" "${PRIVATE_RANGE:?}" "${TUNNEL_RANGE:?}"
+: "${TUNNEL_ADDRESS:?}" "${TUNNEL_ENDPOINT:?}" "${TUNNEL_PEER_KEY:?}" \
+  "${TUNNEL_ALLOWED:=$TUNNEL_RANGE $PRIVATE_RANGE}"
+export DEBIAN_FRONTEND=noninteractive
+opt=/opt/$CODE
+key=$opt/secrets/wg0.key
+
+echo "-- wireguard-tools"
+apt-get install -y -q wireguard-tools
+
+echo "-- key, made once; its public half in $opt/etc/wg0.pub for the vpn server's peers"
+if [ ! -s "$key" ]; then
+  (umask 077; wg genkey > "$key")
+fi
+chmod 600 "$key"
+wg pubkey < "$key" > "$opt/etc/wg0.pub"
+
+echo "-- wg0.conf, the key loaded from the secrets folder"
+install -d -m 700 /etc/wireguard
+cat > /etc/wireguard/wg0.conf.new <<EOF
+[Interface]
+Address = $TUNNEL_ADDRESS
+PostUp = wg set %i private-key $key
+
+[Peer]
+PublicKey = $TUNNEL_PEER_KEY
+Endpoint = $TUNNEL_ENDPOINT
+AllowedIPs = $(echo $TUNNEL_ALLOWED | sed 's/ /, /g')
+PersistentKeepalive = 25
+EOF
+chmod 600 /etc/wireguard/wg0.conf.new
+if cmp -s /etc/wireguard/wg0.conf.new /etc/wireguard/wg0.conf; then
+  rm /etc/wireguard/wg0.conf.new
+  systemctl enable -q --now wg-quick@wg0
+else
+  mv /etc/wireguard/wg0.conf.new /etc/wireguard/wg0.conf
+  systemctl enable -q wg-quick@wg0
+  systemctl restart wg-quick@wg0
+fi
+echo "public key: $(cat "$opt/etc/wg0.pub")"

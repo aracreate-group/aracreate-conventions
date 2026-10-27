@@ -1,0 +1,8 @@
+#!/bin/sh
+# SPDX-License-Identifier: LicenseRef-Proprietary
+# Copyright (C) 2026, araCreate Group
+# Author: Aravinth Panch <ara@aracreate.group>
+# Description: This file contains the motd banner, the server's code and role
+
+echo
+[ -f /opt/@CODE@/etc/banner ] && sed 's/^/  /' /opt/@CODE@/etc/banner

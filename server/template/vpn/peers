@@ -1,0 +1,6 @@
+# SPDX-License-Identifier: LicenseRef-Proprietary
+# Copyright (C) 2026, araCreate Group
+# Author: Aravinth Panch <ara@aracreate.group>
+# Description: This file contains the WireGuard peers, one per line: name,
+#              tunnel address, public key, such as
+#              <person>-<device> 10.21.0.2 <public-key>

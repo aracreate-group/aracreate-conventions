@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+# SPDX-License-Identifier: LicenseRef-Proprietary
+# Copyright (C) 2026, araCreate Group
+# Author: Aravinth Panch <ara@aracreate.group>
+# Description: This file contains @CODE@-state-copy, which copies the server's
+#              settings and state to STATE_COPY_TO, such as a folder on the
+#              site's NAS; secrets stay out, their values are in the password
+#              manager, and lib and apps are rebuilt from the repo
+
+set -euo pipefail
+
+# shellcheck source=/dev/null
+. /opt/@CODE@/etc/server.env
+to="${STATE_COPY_TO:?no STATE_COPY_TO in /opt/@CODE@/etc/server.env}"
+
+mkdir -p "$to"
+# -rlt: a network share may not take owners or modes
+rsync -rlt --delete /opt/@CODE@/etc /opt/@CODE@/state "$to/"
+date -u '+%F %T UTC' > "$to/copied-at"
+echo "copied /opt/@CODE@/etc and /opt/@CODE@/state to $to"

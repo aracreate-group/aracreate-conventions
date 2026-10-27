@@ -1,0 +1,60 @@
+#!/usr/bin/env bash
+# SPDX-License-Identifier: LicenseRef-Proprietary
+# Copyright (C) 2026, araCreate Group
+# Author: Aravinth Panch <ara@aracreate.group>
+# Description: This file contains the Hetzner platform: on a backend, the
+#              default route and resolvers through the vpn server's NAT; run
+#              by the baseline, which exports CODE, NAME and PRIVATE_RANGE
+
+set -euo pipefail
+
+dir="${1:?usage: hetzner <server folder>}"
+# shellcheck source=/dev/null
+. "$dir/server.env"
+: "${CODE:?run by the baseline}" "${NAME:?}" "${PRIVATE_RANGE:?}"
+opt=/opt/$CODE
+# the private interface is the one with an address in PRIVATE_RANGE, a /16
+net=${PRIVATE_RANGE%/*}
+prefix=${net%.*.*}.
+
+if [ -n "${NAT_GATEWAY:-}" ]; then
+  echo "-- default route through the vpn server's NAT"
+  cat > "$opt/bin/$CODE-nat-route" <<EOF
+#!/bin/sh
+# Sets the default route through the network gateway, which sends it on to
+# the vpn server's NAT. Waits up to 5 minutes for the private interface to
+# get its address, which Hetzner's tooling assigns after the network is up.
+i=0
+while :; do
+  dev=\$(ip -o -4 addr show | awk -v p="$prefix" 'index(\$4, p) == 1 { print \$2; exit }')
+  [ -n "\$dev" ] && break
+  i=\$((i + 1))
+  [ "\$i" -ge 300 ] && { echo "no $prefix address after 300 s"; exit 1; }
+  sleep 1
+done
+ip route replace default via $NAT_GATEWAY dev "\$dev" onlink
+EOF
+  chmod 755 "$opt/bin/$CODE-nat-route"
+  cat > "/etc/systemd/system/$CODE-nat-route.service" <<EOF
+[Unit]
+Description=Default route through the $NAME vpn server's NAT
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=$opt/bin/$CODE-nat-route
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
+EOF
+  systemctl daemon-reload
+  systemctl enable -q "$CODE-nat-route.service"
+  systemctl restart "$CODE-nat-route.service"
+  # With no public interface, DHCP gives no DNS servers; Hetzner's resolvers
+  # are reached through the NAT
+  install -d /etc/resolvconf/resolv.conf.d
+  printf 'nameserver 185.12.64.1\nnameserver 185.12.64.2\n' > /etc/resolvconf/resolv.conf.d/tail
+  resolvconf -u
+fi

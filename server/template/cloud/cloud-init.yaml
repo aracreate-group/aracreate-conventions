@@ -1,0 +1,64 @@
+#cloud-config
+# SPDX-License-Identifier: LicenseRef-Proprietary
+# Copyright (C) 2026, araCreate Group
+# Author: Aravinth Panch <ara@aracreate.group>
+# Description: This file contains the first-boot setup of a backend server:
+#              the admin and service users, and the route and DNS through the
+#              vpn server's NAT, since the server has no public IP; the
+#              baseline replaces the route with its own <code>-nat-route
+
+users:
+  - name: <admin>
+    groups: [sudo]
+    shell: /bin/bash
+    ssh_authorized_keys:
+      - <admin-ssh-key>
+  # a service user, where the role runs jobs; drop it otherwise
+  - name: <service-user>
+    shell: /bin/bash
+    ssh_authorized_keys:
+      - <admin-ssh-key>
+write_files:
+  - path: /etc/sudoers.d/90-<code>-<admin>
+    permissions: "0440"
+    content: |
+      <admin> ALL=(ALL) NOPASSWD:ALL
+  - path: /usr/local/sbin/first-nat-route
+    permissions: "0755"
+    content: |
+      #!/bin/sh
+      # The default route goes to the network gateway, which sends it on to
+      # the vpn server's NAT. First boot only. The prefix matches
+      # PRIVATE_RANGE in servers.env, the gateway its first address.
+      i=0
+      while :; do
+        dev=$(ip -o -4 addr show | awk 'index($4, "10.20.") == 1 { print $2; exit }')
+        [ -n "$dev" ] && break
+        i=$((i + 1)); [ "$i" -ge 300 ] && exit 1
+        sleep 1
+      done
+      ip route replace default via 10.20.0.1 dev "$dev" onlink
+  - path: /etc/systemd/system/first-nat-route.service
+    content: |
+      [Unit]
+      Description=Default route through the vpn server's NAT, first boot
+      After=network-online.target
+      Wants=network-online.target
+
+      [Service]
+      Type=oneshot
+      ExecStart=/usr/local/sbin/first-nat-route
+      RemainAfterExit=yes
+
+      [Install]
+      WantedBy=multi-user.target
+  - path: /etc/resolvconf/resolv.conf.d/tail
+    content: |
+      nameserver 185.12.64.1
+      nameserver 185.12.64.2
+disable_root: true
+ssh_pwauth: false
+runcmd:
+  - systemctl daemon-reload
+  - systemctl enable --now first-nat-route.service
+  - resolvconf -u

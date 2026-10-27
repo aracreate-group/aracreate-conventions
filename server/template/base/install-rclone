@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+# SPDX-License-Identifier: LicenseRef-Proprietary
+# Copyright (C) 2026, araCreate Group
+# Author: Aravinth Panch <ara@aracreate.group>
+# Description: This file contains the rclone install for the roles that use
+#              it: the current release from rclone.org, checked against its
+#              published checksums, since the Debian package lags
+
+set -euo pipefail
+
+export DEBIAN_FRONTEND=noninteractive
+
+echo "-- rclone from rclone.org, the Debian package lags"
+arch=$(dpkg --print-architecture)
+want=$(curl -fsSL https://downloads.rclone.org/version.txt | awk '{ print $2 }' | sed 's/^v//')
+have=""
+if command -v rclone >/dev/null; then
+  have=$(rclone version | awk 'NR == 1 { print $2 }' | sed 's/^v//')
+fi
+if [ "$have" != "$want" ]; then
+  tmp=$(mktemp -d)
+  deb="rclone-v$want-linux-$arch.deb"
+  curl -fsSL -o "$tmp/$deb" "https://downloads.rclone.org/v$want/$deb"
+  curl -fsSL -o "$tmp/SHA256SUMS" "https://downloads.rclone.org/v$want/SHA256SUMS"
+  (cd "$tmp" && grep " $deb\$" SHA256SUMS | sha256sum -c -)
+  apt-get install -y -q "$tmp/$deb"
+  rm -rf "$tmp"
+fi

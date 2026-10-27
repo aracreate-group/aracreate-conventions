@@ -129,9 +129,11 @@ param-case. Every type code is three letters, in English.
 - Everything the code's repo writes on a server lives under `/opt/<code>/`:
   `lib/`, the repo copy the baseline runs from and the only folder a sync may
   delete in; `bin/`, its commands, linked into `/usr/local/bin`; `etc/`,
-  settings; `secrets/`; `state/`; `apps/`, its own apps; `jobs/`; and
-  `system/`, links to the drop-ins the system reads in place, such as sshd,
-  sudoers, nftables and systemd units. Third-party apps keep `/opt/<app>/`.
+  the settings as installed, which everything running reads, so a failed
+  sync leaves them as they were; `secrets/`; `state/`; `apps/`, its own
+  apps; `jobs/`; and `system/`, links to the drop-ins the system reads in
+  place, such as sshd, sudoers, nftables and systemd units. Third-party apps
+  keep `/opt/<app>/`.
 - Each server's folder in the repo holds a `server.env` with its settings and
   no secrets: role, swap, SSH users, open ports, what to check. The baseline
   installs it as `/opt/<code>/etc/server.env`.
@@ -152,8 +154,16 @@ param-case. Every type code is three letters, in English.
 - Image tags are pinned to a version. Container logs rotate through
   `/etc/docker/daemon.json`. Published ports bind to private addresses only.
   Images are updated by hand, after a snapshot.
+- An app with a web interface serves TLS from a reverse proxy in its stack,
+  such as Caddy, with its certificate by DNS-01, since no port is public for
+  an HTTP challenge. The DNS token may edit that zone only, and is limited to
+  the vpn server's NAT address where the provider allows it; it sits in the
+  app's `.env`.
 - A job runs as a systemd unit, so it outlives the SSH session, in
   `/opt/<code>/jobs/<job>/`, owned by the service user.
+- A server that clones over SSH trusts a forge's host key only once it
+  matches the forge's published fingerprint; its role writes the checked keys
+  into the service user's `known_hosts`.
 - Nothing is edited on a server. A change goes through the repo and a deploy.
 
 ## 6 motd
@@ -201,7 +211,11 @@ licence text is removed.
 ## 9 Changes
 
 - The baseline is one idempotent script with an addition per platform and
-  per role. Cloud-init runs it on a new cloud server; on an existing server
-  or an on-site one it is run by hand.
+  per role, run over SSH from the repo by a make target, on every server
+  alike. Cloud-init on a new cloud server, or the image on an on-site one,
+  only creates the first login and its sudo, so that first run can log in.
+- The baseline, its scripts and the server templates are in
+  [template/](template/): copied into a repo as `servers/`, with the code's
+  settings in `servers.env`.
 - A change to the baseline is rehearsed on a new or rebuilt server before it
   reaches a server holding state.

@@ -1,0 +1,82 @@
+#!/usr/bin/env bash
+# SPDX-License-Identifier: LicenseRef-Proprietary
+# Copyright (C) 2026, araCreate Group
+# Author: Aravinth Panch <ara@aracreate.group>
+# Description: This file contains the vpn role: WireGuard for the peers, and
+#              NAT so the private network reaches the internet through here
+
+set -euo pipefail
+
+dir="${1:?usage: role <server folder>}"
+# shellcheck source=/dev/null
+. "$dir/server.env"
+: "${CODE:?run by the baseline}" "${PRIVATE_RANGE:?}"
+export DEBIAN_FRONTEND=noninteractive
+
+echo "-- packages"
+apt-get install -y -q wireguard-tools
+
+echo "-- forwarding"
+echo 'net.ipv4.ip_forward=1' > "/etc/sysctl.d/90-$CODE-forward.conf"
+sysctl -q -p "/etc/sysctl.d/90-$CODE-forward.conf"
+
+echo "-- server key, made once and kept on the server"
+install -d -m 700 /etc/wireguard
+if [ ! -f /etc/wireguard/wg0.key ]; then
+  (umask 077; wg genkey > /etc/wireguard/wg0.key)
+fi
+wg pubkey < /etc/wireguard/wg0.key > /etc/wireguard/wg0.pub
+
+echo "-- wg0.conf from the peers file"
+{
+  echo '[Interface]'
+  echo "Address = $WG_ADDRESS"
+  echo "ListenPort = $WG_PORT"
+  echo "PrivateKey = $(cat /etc/wireguard/wg0.key)"
+  grep -vE '^\s*(#|$)' "$dir/peers" | while read -r name addr key; do
+    echo
+    echo "# $name"
+    echo '[Peer]'
+    echo "PublicKey = $key"
+    echo "AllowedIPs = $addr/32"
+  done
+} > /etc/wireguard/wg0.conf.new
+chmod 600 /etc/wireguard/wg0.conf.new
+mv /etc/wireguard/wg0.conf.new /etc/wireguard/wg0.conf
+
+if systemctl is-active -q wg-quick@wg0; then
+  wg syncconf wg0 <(wg-quick strip wg0)
+else
+  systemctl enable -q --now wg-quick@wg0
+fi
+
+echo "-- forward and NAT"
+# On-site servers are peers too; the other peers reach them through wg0
+peers_rule() {
+  if [ -n "${WG_SERVER_PEERS:-}" ]; then
+    echo "    iifname \"wg0\" oifname \"wg0\" ip daddr { $(echo $WG_SERVER_PEERS | sed 's/ /, /g') } accept"
+  fi
+}
+pub=$(ip route show default | awk '{ print $5; exit }')
+cat > "/etc/nftables.d/10-$CODE-vpn.nft" <<EOF
+table inet $CODE-vpn
+delete table inet $CODE-vpn
+table inet $CODE-vpn {
+  chain forward {
+    type filter hook forward priority filter; policy drop;
+    ct state established,related accept
+    iifname "wg0" ip daddr $PRIVATE_RANGE accept
+$(peers_rule)
+    ip saddr $PRIVATE_RANGE oifname "$pub" accept
+  }
+  chain postrouting {
+    type nat hook postrouting priority srcnat;
+    ip saddr $PRIVATE_RANGE oifname "$pub" masquerade
+  }
+}
+EOF
+nft -c -f /etc/nftables.conf
+nft -f /etc/nftables.conf
+
+echo "-- server public key, for the peers' configs"
+cat /etc/wireguard/wg0.pub

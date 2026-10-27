@@ -1,0 +1,20 @@
+#cloud-config
+# SPDX-License-Identifier: LicenseRef-Proprietary
+# Copyright (C) 2026, araCreate Group
+# Author: Aravinth Panch <ara@aracreate.group>
+# Description: This file contains the first-boot setup of <code>-htz-srv-vpn:
+#              the admin user and its sudo, so the baseline can run over SSH
+
+users:
+  - name: <admin>
+    groups: [sudo]
+    shell: /bin/bash
+    ssh_authorized_keys:
+      - <admin-ssh-key>
+write_files:
+  - path: /etc/sudoers.d/90-<code>-<admin>
+    permissions: "0440"
+    content: |
+      <admin> ALL=(ALL) NOPASSWD:ALL
+disable_root: true
+ssh_pwauth: false

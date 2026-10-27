@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+# SPDX-License-Identifier: LicenseRef-Proprietary
+# Copyright (C) 2026, araCreate Group
+# Author: Aravinth Panch <ara@aracreate.group>
+# Description: This file contains the script that creates or tops up an app's
+#              .env on the server, generating the secrets marked <generate:n>
+
+set -euo pipefail
+
+dir="${1:?usage: setup-env /opt/<app>}"
+env_file="$dir/.env"
+example="$dir/.env.example"
+[ -f "$example" ] || { echo "no $example"; exit 1; }
+
+touch "$env_file"
+chown root:root "$env_file"
+chmod 600 "$env_file"
+
+# Append keys the example has and the .env lacks, never editing a set value
+while IFS= read -r line; do
+  [[ -z "$line" || "$line" == \#* ]] && continue
+  key="${line%%=*}"
+  grep -q "^${key}=" "$env_file" || echo "$line" >> "$env_file"
+done < "$example"
+
+# Generate the secrets still marked <generate:n>, n random bytes as hex
+marked=$(grep -oE '^[A-Z0-9_]+=<generate:[0-9]+>$' "$env_file" || true)
+while IFS='=' read -r key mark; do
+  [ -n "$key" ] || continue
+  bytes="${mark//[^0-9]/}"
+  perl -i -pe "s/^${key}=<generate:[0-9]+>\$/${key}=$(openssl rand -hex "$bytes")/" "$env_file"
+  echo "generated $key"
+done <<< "$marked"
+
+# Name the keys left empty, to be set by hand on the server
+grep -oE '^[A-Z0-9_]+=$' "$env_file" | while IFS='=' read -r key _; do
+  echo "$key is empty: set it in $env_file"
+done
+exit 0

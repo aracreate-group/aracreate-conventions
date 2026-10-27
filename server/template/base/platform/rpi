@@ -1,0 +1,73 @@
+#!/usr/bin/env bash
+# SPDX-License-Identifier: LicenseRef-Proprietary
+# Copyright (C) 2026, araCreate Group
+# Author: Aravinth Panch <ara@aracreate.group>
+# Description: This file contains the Raspberry Pi platform: cloud-init off
+#              after first boot, radios, discovery and remote access off, the
+#              journal on disk, the Raspberry Pi archive in unattended
+#              upgrades, current bootloader firmware, and the board check
+
+set -euo pipefail
+
+: "${CODE:?run by the baseline}"
+export DEBIAN_FRONTEND=noninteractive
+boot=/boot/firmware/config.txt
+echo "-- cloud-init off: its job on a Pi is the first boot, and it would reset the hostname"
+touch /etc/cloud/cloud-init.disabled
+
+echo "-- packages the server does not use"
+purge=(avahi-daemon bluez bluez-firmware rpi-connect-lite rpi-usb-gadget)
+present=()
+for p in "${purge[@]}"; do dpkg -s "$p" >/dev/null 2>&1 && present+=("$p"); done
+if [ ${#present[@]} -gt 0 ]; then apt-get purge -y -q "${present[@]}"; fi
+
+echo "-- WiFi profiles deleted; WiFi, Bluetooth, audio and display detection off"
+nmcli -t -f NAME,TYPE con show | awk -F: '$2 == "802-11-wireless" { print $1 }' |
+  while read -r c; do nmcli con delete "$c"; done
+sed -e 's/^dtparam=audio=on/dtparam=audio=off/' \
+    -e 's/^camera_auto_detect=1/camera_auto_detect=0/' \
+    -e 's/^display_auto_detect=1/display_auto_detect=0/' "$boot" > "$boot.new"
+if ! grep -q '^dtoverlay=disable-wifi' "$boot.new"; then
+  printf '\n[pi5]\ndtoverlay=disable-wifi-pi5\ndtoverlay=disable-bt-pi5\n[pi4]\ndtoverlay=disable-wifi\ndtoverlay=disable-bt\n[all]\n' >> "$boot.new"
+fi
+if cmp -s "$boot" "$boot.new"; then rm "$boot.new"
+else
+  mv "$boot.new" "$boot"
+  touch /run/reboot-required; echo config.txt >> /run/reboot-required.pkgs
+fi
+
+echo "-- journal kept on disk, so a service user reads its own units' logs"
+install -d /etc/systemd/journald.conf.d
+printf '[Journal]\nStorage=persistent\n' > "/etc/systemd/journald.conf.d/91-$CODE-rpi.conf"
+systemctl restart systemd-journald
+
+echo "-- unattended upgrades include the Raspberry Pi archive"
+cat > "/etc/apt/apt.conf.d/52$CODE-raspi" <<'EOF'
+// The kernel and firmware come from the Raspberry Pi archive, which has no
+// separate security suite
+Unattended-Upgrade::Origins-Pattern {
+  "origin=Raspberry Pi Foundation,codename=${distro_codename}";
+};
+EOF
+
+echo "-- bootloader firmware from the current rpi-eeprom, applied at the next reboot"
+# Upgraded first: a later upgrade of the package cancels an update staged here
+apt-get update -q
+apt-get install -y -q --only-upgrade rpi-eeprom
+out=$(rpi-eeprom-update || true)
+if grep -q 'UPDATE AVAILABLE' <<< "$out"; then
+  rpi-eeprom-update -a
+  touch /run/reboot-required; echo rpi-eeprom >> /run/reboot-required.pkgs
+fi
+
+echo "-- board check"
+cat > "/opt/$CODE/etc/checks.d/board" <<'EOF'
+#!/bin/sh
+# Fails while the board is under voltage, capped or throttled, or at 80 C or more
+t=$(vcgencmd get_throttled | cut -d= -f2)
+c=$(vcgencmd measure_temp | tr -dc '0-9.')
+if [ $((t & 0xF)) -ne 0 ]; then echo "throttled now ($t) at $c C"; exit 1; fi
+if awk -v c="$c" 'BEGIN { exit !(c >= 80) }'; then echo "$c C"; exit 1; fi
+echo "$c C, not throttled"
+EOF
+chmod 755 "/opt/$CODE/etc/checks.d/board"

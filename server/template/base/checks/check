@@ -1,0 +1,144 @@
+#!/usr/bin/env bash
+# SPDX-License-Identifier: LicenseRef-Proprietary
+# Copyright (C) 2026, araCreate Group
+# Author: Aravinth Panch <ara@aracreate.group>
+# Description: This file contains @CODE@-check, which runs the server's checks and
+#              alerts when one fails, clears, or is still failing a day later
+
+set -uo pipefail
+
+: "${LOAD_PER_CPU:=2}" "${DISK_MAX_PCT:=80}" "${MEM_MIN_AVAIL_PCT:=10}" \
+  "${UPGRADES_MAX_HOURS:=48}" "${CERT_MIN_DAYS:=21}" "${CERT_HOSTS:=}" \
+  "${BACKUPS:=}" "${REMIND_HOURS:=24}"
+
+state=/opt/@CODE@/state/checks
+mkdir -p "$state"
+now=$(date +%s)
+
+# report <check> <ok|fail> <message>: the state file holds "result since last"
+# on its first line and the latest message on its second. A change is only
+# recorded once its alert went out, so an alert that could not be sent is
+# tried again on the next run.
+report() {
+  local name=$1 result=$2 msg=$3 f="$state/$1" prev=ok since=0 last=0
+  [ -f "$f" ] && read -r prev since last < "$f"
+  if [ "$result" = fail ]; then
+    if [ "$prev" != fail ]; then
+      @CODE@-notify fail "$name" "$msg" || return 0
+      since=$now; last=$now
+    elif [ $((now - last)) -ge $((REMIND_HOURS * 3600)) ]; then
+      @CODE@-notify fail "$name" "still failing since $(date -ud "@$since" '+%F %H:%M UTC'): $msg" \
+        && last=$now
+    fi
+    printf 'fail %s %s\n%s\n' "$since" "$last" "$msg" > "$f"
+  else
+    if [ "$prev" = fail ]; then @CODE@-notify clear "$name" "$msg" || return 0; fi
+    printf 'ok 0 0\n%s\n' "$msg" > "$f"
+  fi
+}
+
+check_load() {
+  local cpus load
+  cpus=$(nproc); load=$(cut -d' ' -f2 /proc/loadavg)
+  if awk -v l="$load" -v m="$((cpus * LOAD_PER_CPU))" 'BEGIN { exit !(l > m) }'; then
+    report load fail "5-minute load $load on $cpus CPUs"
+  else
+    report load ok "5-minute load $load"
+  fi
+}
+
+check_disk() {
+  local over
+  over=$(df -P -x tmpfs -x devtmpfs -x overlay -x efivarfs | awk -v m="$DISK_MAX_PCT" \
+    'NR > 1 { p = $5; sub("%", "", p); if (p + 0 > m) printf "%s %s%%  ", $6, p }')
+  if [ -n "$over" ]; then report disk fail "over ${DISK_MAX_PCT}%: $over"
+  else report disk ok "every filesystem under ${DISK_MAX_PCT}%"; fi
+}
+
+check_memory() {
+  local pct
+  pct=$(awk '/^MemTotal/ { t = $2 } /^MemAvailable/ { a = $2 } END { printf "%d", a * 100 / t }' /proc/meminfo)
+  if [ "$pct" -lt "$MEM_MIN_AVAIL_PCT" ]; then report memory fail "${pct}% of memory available"
+  else report memory ok "${pct}% of memory available"; fi
+}
+
+check_reboot() {
+  if [ -f /run/reboot-required ]; then
+    report reboot fail "reboot needed for $(tr '\n' ' ' < /run/reboot-required.pkgs 2>/dev/null)"
+  else
+    report reboot ok "no reboot needed"
+  fi
+}
+
+check_upgrades() {
+  local sim all sec seen="$state/upgrades.seen" age
+  sim=$(apt-get -s -o Debug::NoLocking=1 upgrade 2>/dev/null)
+  all=$(grep -c '^Inst ' <<< "$sim")
+  sec=$(grep -c '^Inst .*security' <<< "$sim")
+  if [ "$sec" -eq 0 ]; then
+    rm -f "$seen"; report upgrades ok "$all updates pending, none for security"; return
+  fi
+  [ -f "$seen" ] || echo "$now" > "$seen"
+  age=$(( (now - $(cat "$seen")) / 3600 ))
+  if [ "$age" -ge "$UPGRADES_MAX_HOURS" ]; then
+    report upgrades fail "$sec security updates waiting for ${age} h: unattended-upgrades is not installing them"
+  else
+    report upgrades ok "$all updates pending, $sec for security, seen ${age} h ago"
+  fi
+}
+
+check_units() {
+  local failed
+  failed=$(systemctl --failed --no-legend --plain | awk '{ print $1 }' | xargs)
+  if [ -n "$failed" ]; then report units fail "failed units: $failed"
+  else report units ok "no failed units"; fi
+}
+
+check_containers() {
+  command -v docker >/dev/null || return 0
+  local bad
+  bad=$( { docker ps -a --filter status=restarting --format '{{.Names}}'
+           docker ps --filter health=unhealthy --format '{{.Names}}'; } | sort -u | xargs)
+  if [ -n "$bad" ]; then report containers fail "restarting or unhealthy: $bad"
+  else report containers ok "$(docker ps -q | wc -l) containers running"; fi
+}
+
+check_certs() {
+  local hp host end days
+  for hp in $CERT_HOSTS; do
+    host=${hp%:*}
+    end=$(echo | timeout 10 openssl s_client -connect "$hp" -servername "$host" 2>/dev/null \
+          | openssl x509 -noout -enddate 2>/dev/null | cut -d= -f2)
+    if [ -z "$end" ]; then report "cert-$host" fail "no certificate answered on $hp"; continue; fi
+    days=$(( ($(date -d "$end" +%s) - now) / 86400 ))
+    if [ "$days" -lt "$CERT_MIN_DAYS" ]; then report "cert-$host" fail "expires in $days days, $end"
+    else report "cert-$host" ok "expires in $days days"; fi
+  done
+}
+
+# BACKUPS="<glob>:<max hours> ...", such as /var/backups/forgejo/*.zip:26
+check_backups() {
+  local b glob max newest age name
+  for b in $BACKUPS; do
+    glob=${b%:*}; max=${b##*:}; name="backup-$(basename "$(dirname "$glob")")"
+    # shellcheck disable=SC2086
+    newest=$(ls -t $glob 2>/dev/null | head -1)
+    if [ -z "$newest" ]; then report "$name" fail "no backup matches $glob"; continue; fi
+    age=$(( (now - $(stat -c %Y "$newest")) / 3600 ))
+    if [ "$age" -gt "$max" ]; then report "$name" fail "newest backup is ${age} h old: $newest"
+    else report "$name" ok "newest backup ${age} h old"; fi
+  done
+}
+
+# A role's own checks: each script prints one line and exits 0 for ok
+check_role() {
+  local c out
+  for c in /opt/@CODE@/etc/checks.d/*; do
+    [ -x "$c" ] || continue
+    if out=$("$c" 2>&1); then report "$(basename "$c")" ok "$out"
+    else report "$(basename "$c")" fail "$out"; fi
+  done
+}
+
+check_load; check_disk; check_memory; check_reboot; check_upgrades
+check_units; check_containers; check_certs; check_backups; check_role

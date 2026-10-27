@@ -1,0 +1,92 @@
+#!/usr/bin/env python3
+# SPDX-License-Identifier: LicenseRef-Proprietary
+# Copyright (C) 2026, araCreate Group
+# Author: Aravinth Panch <ara@aracreate.group>
+# Description: This file contains @CODE@-notify, which sends one alert to the
+#              code's Slack channel and by email; usage: @CODE@-notify
+#              <fail|clear|info> <check> <message>
+
+import json
+import smtplib
+import socket
+import sys
+import urllib.request
+from email.message import EmailMessage
+
+# servers.env gives the channel and the mail addresses, the secrets the token
+# and the password; installed by the baseline with @CODE@ and @NAME@ filled in
+ENV_FILES = ("/opt/@CODE@/etc/servers.env", "/opt/@CODE@/secrets/slack.env",
+             "/opt/@CODE@/secrets/smtp.env")
+DEFAULTS = {"SMTP_PORT": "587"}
+ICONS = {"fail": ":red_circle:", "clear": ":large_green_circle:", "info": ":information_source:"}
+
+
+def read_env(paths):
+    env = dict(DEFAULTS)
+    for path in paths:
+        try:
+            with open(path) as f:
+                lines = f.read().splitlines()
+        except FileNotFoundError:
+            continue
+        for line in lines:
+            line = line.strip()
+            if line and not line.startswith("#") and "=" in line:
+                key, value = line.split("=", 1)
+                env[key.strip()] = value.strip().strip('"')
+    return env
+
+
+def slack(env, host, level, check, message):
+    token = env.get("SLACK_BOT_TOKEN")
+    if not token or not env.get("SLACK_CHANNEL"):
+        return "slack: no SLACK_BOT_TOKEN or SLACK_CHANNEL"
+    text = f"{ICONS[level]} *{host}* {level.upper()} `{check}`\n{message}"
+    request = urllib.request.Request(
+        "https://slack.com/api/chat.postMessage",
+        data=json.dumps({"channel": env["SLACK_CHANNEL"], "text": text}).encode(),
+        headers={"Content-Type": "application/json; charset=utf-8",
+                 "Authorization": f"Bearer {token}"})
+    try:
+        with urllib.request.urlopen(request, timeout=15) as response:
+            answer = json.load(response)
+    except Exception as e:
+        return f"slack: {e}"
+    if not answer.get("ok"):
+        return f"slack: {answer.get('error')}"
+    return None
+
+
+def email(env, host, level, check, message):
+    if not env.get("SMTP_PASSWORD"):
+        return "email: no SMTP_PASSWORD"
+    msg = EmailMessage()
+    msg["Subject"] = f"[{host}] {level.upper()} {check}"
+    msg["From"] = f"@NAME@ {host} <{env['MAIL_FROM']}>"
+    msg["To"] = env["MAIL_TO"]
+    msg.set_content(message)
+    try:
+        with smtplib.SMTP(env["SMTP_HOST"], int(env["SMTP_PORT"]), timeout=30) as s:
+            s.starttls()
+            s.login(env["SMTP_USER"], env["SMTP_PASSWORD"])
+            s.send_message(msg)
+    except Exception as e:
+        return f"email: {e}"
+    return None
+
+
+def main():
+    if len(sys.argv) != 4 or sys.argv[1] not in ICONS:
+        sys.exit("usage: @CODE@-notify <fail|clear|info> <check> <message>")
+    level, check, message = sys.argv[1:]
+    env = read_env(ENV_FILES)
+    host = socket.gethostname()
+    errors = [e for e in (slack(env, host, level, check, message),
+                          email(env, host, level, check, message)) if e]
+    for e in errors:
+        print(e, file=sys.stderr)
+    sys.exit(1 if len(errors) == 2 else 0)
+
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,31 @@
+#!/bin/sh
+# SPDX-License-Identifier: LicenseRef-Proprietary
+# Copyright (C) 2026, araCreate Group
+# Author: Aravinth Panch <ara@aracreate.group>
+# Description: This file contains the motd status lines, read from the last
+#              @CODE@-check run so a login never waits on a check
+
+. /opt/@CODE@/etc/server.env 2>/dev/null
+state=/opt/@CODE@/state/checks
+msg() { [ -f "$state/$1" ] && sed -n 2p "$state/$1"; }
+
+addr=$(ip -4 -o addr show scope global | awk '{ print $4 }' | cut -d/ -f1 \
+       | grep -E '^10\.' | xargs)
+printf '  %-10s %s\n' server "$(hostname), role $ROLE"
+printf '  %-10s %s\n' address "$addr"
+printf '  %-10s %s\n' load "$(cut -d' ' -f1-3 /proc/loadavg)"
+printf '  %-10s %s\n' disk "$(df -h / | awk 'NR == 2 { print $3 " of " $2 ", " $5 }')"
+printf '  %-10s %s\n' memory "$(free -h | awk '/^Mem:/ { print $3 " of " $2 }')"
+printf '  %-10s %s\n' updates "$(msg upgrades)"
+printf '  %-10s %s\n' reboot "$(msg reboot)"
+for f in "$state"/cert-*; do
+  [ -f "$f" ] && printf '  %-10s %s %s\n' cert "${f##*/cert-}" "$(msg "${f##*/}")"
+done
+command -v docker >/dev/null && printf '  %-10s %s\n' containers "$(msg containers)"
+newest=$(ls -t "$state"/* 2>/dev/null | head -1)
+if [ -n "$newest" ]; then
+  printf '  %-10s %s\n' checks "$(( ($(date +%s) - $(stat -c %Y "$newest")) / 60 )) min ago"
+fi
+failing=$(grep -l '^fail' "$state"/* 2>/dev/null | xargs -r -n1 basename | xargs)
+[ -n "$failing" ] && printf '\n  FAILING    %s\n' "$failing"
+echo
