@@ -216,6 +216,6 @@ licence text is removed.
   only creates the first login and its sudo, so that first run can log in.
 - The baseline, its scripts and the server templates are in
   [template/](template/): copied into a repo as `servers/`, with the code's
-  settings in `servers.env`.
+  settings in `shared.env`.
 - A change to the baseline is rehearsed on a new or rebuilt server before it
   reaches a server holding state.

@@ -2,16 +2,16 @@
 
 The baseline, its scripts and the server templates that
 [conventions-server](../conventions-server.md) describes. Copy this folder
-into a repo as `servers/`, fill in `servers.env`, then add one folder per
+into a repo as `servers/`, fill in `shared.env`, then add one folder per
 server from a template. The scripts read every name and path from
-`servers.env`, so they are used as they are.
+`shared.env`, so they are used as they are.
 
 ## Layout
 
     servers/
     ├── readme.md            the code's servers: a table, and its own specifics
     ├── Makefile             banner, baseline, secret, notify-test, sync, setup, deploy, ps, logs; SRV= APP=
-    ├── servers.env          CODE, NAME, ADMINS, the ranges, the alert channel and mailboxes
+    ├── shared.env           CODE, NAME, ADMINS, the ranges, the alert channel and mailboxes
     ├── base/
     │   ├── baseline         idempotent, run over SSH as root
     │   ├── authorized-keys  public keys for every SSH user
@@ -42,7 +42,7 @@ server's own files need no settings to find their paths.
 
 ## Starting
 
-1. Copy this folder into the repo as `servers/`, and fill in `servers.env`.
+1. Copy this folder into the repo as `servers/`, and fill in `shared.env`.
    Every key, in `base/authorized-keys`, named as conventions-server §1
    gives.
 2. The vpn server first: copy `vpn/` to `<code>-htz-srv-vpn/`, fill

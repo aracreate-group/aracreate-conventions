@@ -4,17 +4,17 @@
 # Author: Aravinth Panch <ara@aracreate.group>
 # Description: This file contains the baseline every server is built to, run
 #              as root with the server's folder as its argument; settings come
-#              from servers.env beside base/, then the server's server.env
+#              from shared.env beside base/, then the server's server.env
 
 set -euo pipefail
 
 dir="${1:?usage: baseline <server folder>}"
 lib="$(cd "$(dirname "$0")" && pwd)"
 # shellcheck source=/dev/null
-. "$lib/../servers.env"
+. "$lib/../shared.env"
 # shellcheck source=/dev/null
 . "$dir/server.env"
-: "${CODE:?no CODE in servers.env}" "${ADMINS:?no ADMINS in servers.env}" \
+: "${CODE:?no CODE in shared.env}" "${ADMINS:?no ADMINS in shared.env}" \
   "${NAME:=$CODE}" "${PRIVATE_RANGE:=10.20.0.0/16}" "${TUNNEL_RANGE:=10.21.0.0/24}"
 : "${SWAP_SIZE:=2G}" "${SSH_PORT:=22}" "${SSH_USERS:=$ADMINS}" \
   "${AGENT_FORWARDING:=no}" "${DOCKER:=no}" "${SUDO_NOPASSWD:=no}" \
@@ -42,7 +42,7 @@ install_marked() {
 step "Settings"
 install -d -m 755 "$opt" "$opt/bin" "$opt/etc" "$opt/etc/checks.d" \
   "$opt/secrets" "$opt/state" "$opt/state/checks" "$opt/apps" "$opt/system"
-install -m 644 "$lib/../servers.env" "$opt/etc/servers.env"
+install -m 644 "$lib/../shared.env" "$opt/etc/shared.env"
 install -m 644 "$dir/server.env" "$opt/etc/server.env"
 [ -f "$dir/banner" ] && install -m 644 "$dir/banner" "$opt/etc/banner"
 if [ -d "$dir/checks.d" ]; then

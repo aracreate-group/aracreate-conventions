@@ -29,7 +29,7 @@ write_files:
       #!/bin/sh
       # The default route goes to the network gateway, which sends it on to
       # the vpn server's NAT. First boot only. The prefix matches
-      # PRIVATE_RANGE in servers.env, the gateway its first address.
+      # PRIVATE_RANGE in shared.env, the gateway its first address.
       i=0
       while :; do
         dev=$(ip -o -4 addr show | awk 'index($4, "10.20.") == 1 { print $2; exit }')

@@ -13,9 +13,9 @@ import sys
 import urllib.request
 from email.message import EmailMessage
 
-# servers.env gives the channel and the mail addresses, the secrets the token
+# shared.env gives the channel and the mail addresses, the secrets the token
 # and the password; installed by the baseline with @CODE@ and @NAME@ filled in
-ENV_FILES = ("/opt/@CODE@/etc/servers.env", "/opt/@CODE@/secrets/slack.env",
+ENV_FILES = ("/opt/@CODE@/etc/shared.env", "/opt/@CODE@/secrets/slack.env",
              "/opt/@CODE@/secrets/smtp.env")
 DEFAULTS = {"SMTP_PORT": "587"}
 ICONS = {"fail": ":red_circle:", "clear": ":large_green_circle:", "info": ":information_source:"}

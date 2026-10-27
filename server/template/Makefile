@@ -5,7 +5,7 @@
 
 SHELL      := /bin/bash
 MOTD       := ../scripts/motd
-CODE       := $(shell . ./servers.env && echo $$CODE)
+CODE       := $(shell . ./shared.env && echo $$CODE)
 LIB         = /opt/$(CODE)/lib
 SUDO_RSYNC := --rsync-path="sudo rsync"
 SSH_TO      = $(if $(LOGIN),$(LOGIN)@)$(SRV)
@@ -56,7 +56,7 @@ banner: need-srv
 baseline: need-srv
 	@printf "\n==> Copying to $(SRV):$(LIB)\n\n"
 	@ssh $(SSH_TO) 'sudo install -d -m 755 $(LIB)'
-	@rsync -rlpt --delete $(SUDO_RSYNC) base servers.env $(SRV) $(SSH_TO):$(LIB)/
+	@rsync -rlpt --delete $(SUDO_RSYNC) base shared.env $(SRV) $(SSH_TO):$(LIB)/
 	@printf "\n==> Applying\n"
 	@ssh $(SSH_TO) 'sudo EXTRA_SSH_FROM="$(BOOTSTRAP_FROM)" $(LIB)/base/baseline $(LIB)/$(SRV)'
 
