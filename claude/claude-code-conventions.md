@@ -160,6 +160,9 @@ What Claude writes in the session, never in files, commits or documents.
   drafted from the wrong clone, and the right one is not reached with
   `git -C`. Name the directory to run in, the state the work is in and what
   has to be cleared first, and stop.
+  A workspace root, a plain folder holding one clone per repo, is not a wrong
+  repo: the clone is its subfolder whose `origin` matches, and every git step
+  runs inside it.
 - A state of the machine or a repo the user reports is fact; re-check it
   rather than trusting an earlier view, since things move between turns.
 - A name given roughly is turned into the naming convention of wherever it
