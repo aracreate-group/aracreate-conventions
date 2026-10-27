@@ -16,6 +16,7 @@ written for it yet has no folder.
 | [git/](git/) | Commit message format, the platform document for GitLab, and templates in [`git/templates/`](git/templates/) |
 | [drive/](drive/) | Google shared drives: naming, links and code in every drive, client layout in a projects drive, person folders in a team drive |
 | [claude/](claude/) | Running a Claude Code session: ending it, replies, questions, asking before acting, files, evidence, shell |
+| [server/](server/) | Servers in the cloud and on site: naming, network, OS, access, apps, motd, checks and alerts, backups, changes |
 
 `logs/` is this repo's own log, kept as [repo §5](repo/readme.md#5-logs) asks of every repo, not a convention domain.
 
