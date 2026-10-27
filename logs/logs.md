@@ -12,4 +12,4 @@ in [repo §5](../repo/readme.md#5-logs), and each log starts from the
 | Log | Covers |
 |---|---|
 | [log-2026-10-08](log-2026-10-08.md) | Logs, drive and Claude Code conventions published; repo's own Makefile, motd and wiki removed |
-| [log-2026-10-27](log-2026-10-27.md) | Drive, Claude Code and server conventions published |
+| [log-2026-10-27](log-2026-10-27.md) | Drive, Claude Code and server conventions published; server template added |
