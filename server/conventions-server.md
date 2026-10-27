@@ -43,6 +43,7 @@ param-case. Every type code is three letters, in English.
 | --- | --- | --- |
 | SSH key | `<yyyy-mm-dd>-<person>-<device>`, the date it was made | `2026-10-14-<person>-<device>` |
 | API token | `<person>-<device>-<ro\|rw>` | `<person>-<device>-rw` |
+| Cloudflare API token held by a server | the server's name | `<code>-htz-srv-git` |
 | WireGuard tunnel | `<code>-<provider>` | `<code>-htz` |
 | Hostname | the server's name, unchanged | `<code>-htz-srv-vpn` |
 | Labels | `owner=<code>`, `role=<role>`, and `exposure=private` on every server but the vpn (cloud servers only) | |
