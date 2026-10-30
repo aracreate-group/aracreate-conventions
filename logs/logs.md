@@ -13,4 +13,4 @@ in [repo §5](../repo/readme.md#5-logs), and each log starts from the
 |---|---|
 | [log-2026-10-08](log-2026-10-08.md) | Logs, drive and Claude Code conventions published; repo's own Makefile, motd and wiki removed |
 | [log-2026-10-27](log-2026-10-27.md) | Drive, Claude Code, server and Cloudflare conventions published; server template added, its shared settings named shared.env |
-| [log-2026-10-30](log-2026-10-30.md) | README reframed as the reference for all conventions |
+| [log-2026-10-30](log-2026-10-30.md) | README reframed as the reference for all conventions; licence line names the copyright holder |
