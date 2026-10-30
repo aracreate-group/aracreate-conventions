@@ -1,12 +1,15 @@
 # araCreate Conventions
 
-The canonical reference for the conventions every araCreate Group repository follows.
-New repos are set up to match the structure and standards documented here, and each
-project's own README links back to this repo rather than duplicating the rules.
+The canonical reference for every araCreate Group convention: how repos, commits,
+work items, shared drives, Claude Code sessions, servers and Cloudflare are set up
+and run. Each convention is defined once, here. A repo, drive or server links back
+to the convention it follows rather than restating it, and adds only what is
+specific to it.
 
-Conventions are grouped by domain, one folder each. A folder exists when there is a
-convention to put in it — the set of folders is the catalogue, so a tool with nothing
-written for it yet has no folder.
+Conventions are grouped by domain, one folder each, and each folder's `readme.md`
+is its index. A folder exists only when there is a convention to put in it, so
+the folders are the catalogue. A domain with nothing written for it yet has no
+folder.
 
 ## What lives here
 
@@ -19,19 +22,12 @@ written for it yet has no folder.
 | [server/](server/) | Servers in the cloud and on site: naming, network, OS, access, apps, motd, checks and alerts, backups, changes; a template servers/ folder |
 | [cloudflare/](cloudflare/) | Cloudflare: the account, domain tiers and groups, access, DNS and tokens; static sites on Pages, from creating a project to its checks |
 
-`logs/` is this repo's own log, kept as [repo §5](repo/readme.md#5-logs) asks of every repo, not a convention domain.
+## Notes
 
-Read [`git/git-conventions.md`](git/git-conventions.md) whatever the repo, then the
-platform document for wherever it is hosted. Commit format is defined there once and
-nowhere else, because semantic-release parses it to decide version bumps and write
-`CHANGELOG.md`.
-
-## Starting a new repo
-
-Copy [`repo/template/`](repo/template/) and follow
-[repo §1](repo/readme.md#1-starting-a-repo). It carries the full folder set, the
-`Makefile`, `scripts/motd`, `VERSION`, `LICENSE` and `.gitignore` with placeholders
-ready to replace.
+- `logs/` is this repo's own log, kept as [repo §5](repo/readme.md#5-logs) asks of
+  every repo, not a convention domain.
+- Read [`git/git-conventions.md`](git/git-conventions.md) whatever the repo, then
+  the platform document for wherever it is hosted.
 
 ## License
 
