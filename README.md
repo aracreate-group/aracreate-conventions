@@ -31,4 +31,4 @@ folder.
 
 ## License
 
-Proprietary. See [LICENSE](LICENSE).
+Copyright (C) 2026, araCreate Group. Proprietary, see [LICENSE](LICENSE).
